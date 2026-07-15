@@ -1,0 +1,26 @@
+{
+  "checkpoints": {
+    "changed": [],
+    "equal": true,
+    "new_files": 16,
+    "old_files": 16
+  },
+  "data": {
+    "changed": [],
+    "equal": true,
+    "new_files": 11,
+    "old_files": 11
+  },
+  "logs": {
+    "changed": [],
+    "equal": true,
+    "new_files": 38,
+    "old_files": 38
+  },
+  "usd": {
+    "changed": [],
+    "equal": true,
+    "new_files": 8,
+    "old_files": 8
+  }
+}

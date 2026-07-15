@@ -1,0 +1,118 @@
+{
+  "behavior_source_equivalence": {
+    "mismatches": [],
+    "pass": true,
+    "python_files_new": 43,
+    "python_files_old": 43
+  },
+  "config_parsing": {
+    "json_count": 3,
+    "json_errors": [],
+    "xml_urdf_count": 9,
+    "xml_urdf_errors": [],
+    "yaml_count": 7,
+    "yaml_errors": []
+  },
+  "file_layout": {
+    "expected_present": {
+      "configs/policy.onnx": true,
+      "configs/policy_latest.yaml": true,
+      "scripts/rsl_rl/export_policy.py": true,
+      "scripts/rsl_rl/export_policy_littlegreen.py": true,
+      "source/littlegreen_humanoid_lite_assets/data/mjcf/littlegreen_biped_scene.xml": true,
+      "source/littlegreen_humanoid_lite_assets/data/mjcf/littlegreen_scene.xml": true
+    },
+    "forbidden_absent": {
+      "scripts/rsl_rl/export_policy_bhl.py": true,
+      "scripts/rsl_rl/export_policy_lgh.py": true,
+      "source/littlegreen_humanoid_lite_assets/data/mjcf/bhl_biped_scene.xml": true,
+      "source/littlegreen_humanoid_lite_assets/data/mjcf/bhl_scene.xml": true
+    }
+  },
+  "literal_contract_constants": {
+    "hardware_contract.py": {
+      "changed_keys": [],
+      "equal": true,
+      "new_count": 23,
+      "old_count": 23
+    },
+    "st3215_actuator_model.py": {
+      "changed_keys": [],
+      "equal": true,
+      "new_count": 20,
+      "old_count": 20
+    },
+    "st3215_loaded_actuator_model.py": {
+      "changed_keys": [],
+      "equal": true,
+      "new_count": 18,
+      "old_count": 18
+    }
+  },
+  "metadata": {
+    "all_v2_0_0": true,
+    "package_names_versions": {
+      "littlegreen_humanoid_lite": [
+        "littlegreen_humanoid_lite",
+        "2.0.0"
+      ],
+      "littlegreen_humanoid_lite_assets": [
+        "littlegreen_humanoid_lite_assets",
+        "2.0.0"
+      ],
+      "littlegreen_humanoid_lite_lowlevel": [
+        "littlegreen_humanoid_lite_lowlevel",
+        "2.0.0"
+      ]
+    },
+    "root_name": "littlegreen-humanoid-lite-workspace",
+    "root_version": "2.0.0",
+    "version_file": "2.0.0"
+  },
+  "policy_bundle": {
+    "action_contract_version": 4,
+    "num_actions": 12,
+    "num_observations": 47,
+    "onnx_exact_copy": true,
+    "onnx_sha256": "3e663fbde931d8056fe8461a19a6d7bc759329d9c36b3418e4bb3a95196bf627",
+    "semantic_fields_equal_to_supplied_after_identity_path_normalization": true,
+    "task": "Velocity-Lilgreen-Hardware-ST3215-Loaded-v7",
+    "yaml_hash_matches_onnx": true
+  },
+  "stale_names": {
+    "stale_active_metadata": [],
+    "stale_python_imports": []
+  },
+  "task_registry": {
+    "count_new": 24,
+    "count_old": 24,
+    "entrypoints_equal_after_package_normalization": true,
+    "ids": [
+      "Velocity-Berkeley-Humanoid-Lite-Biped-v0",
+      "Velocity-Berkeley-Humanoid-Lite-v0",
+      "Velocity-Lilgreen-Hardware-ST3215-Loaded-v0",
+      "Velocity-Lilgreen-Hardware-ST3215-Loaded-v1",
+      "Velocity-Lilgreen-Hardware-ST3215-Loaded-v2",
+      "Velocity-Lilgreen-Hardware-ST3215-Loaded-v3",
+      "Velocity-Lilgreen-Hardware-ST3215-Loaded-v4",
+      "Velocity-Lilgreen-Hardware-ST3215-Loaded-v5",
+      "Velocity-Lilgreen-Hardware-ST3215-Loaded-v5s",
+      "Velocity-Lilgreen-Hardware-ST3215-Loaded-v5s2",
+      "Velocity-Lilgreen-Hardware-ST3215-Loaded-v5s3",
+      "Velocity-Lilgreen-Hardware-ST3215-Loaded-v6",
+      "Velocity-Lilgreen-Hardware-ST3215-Loaded-v7",
+      "Velocity-Lilgreen-Hardware-ST3215-Loaded-v8",
+      "Velocity-Lilgreen-Hardware-ST3215-v0",
+      "Velocity-Lilgreen-Hardware-v0",
+      "Velocity-Lilgreen-Humanoid-v0",
+      "Velocity-Lilgreen-Stand-ST3215-Loaded-v0",
+      "Velocity-Lilgreen-Stand-ST3215-Loaded-v5",
+      "Velocity-Lilgreen-Stand-ST3215-Loaded-v5s",
+      "Velocity-Lilgreen-Stand-ST3215-Loaded-v5s2",
+      "Velocity-Lilgreen-Stand-ST3215-Loaded-v5s3",
+      "Velocity-Lilgreen-Stand-ST3215-v0",
+      "Velocity-Lilgreen-Stand-v0"
+    ],
+    "ids_equal": true
+  }
+}

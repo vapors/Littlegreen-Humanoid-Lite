@@ -1,0 +1,239 @@
+{
+  "task": "Velocity-Lilgreen-Stand-Residual-v0",
+  "num_envs": 64,
+  "policy_dt_s": 0.02,
+  "settle_seconds": 5.0,
+  "sample_seconds": 2.0,
+  "settle_steps": 250,
+  "sample_steps": 100,
+  "action_dim": 12,
+  "action_joint_names": [
+    "leg_left_hip_roll_joint",
+    "leg_left_hip_yaw_joint",
+    "leg_left_hip_pitch_joint",
+    "leg_left_knee_pitch_joint",
+    "leg_left_ankle_pitch_joint",
+    "leg_left_ankle_roll_joint",
+    "leg_right_hip_roll_joint",
+    "leg_right_hip_yaw_joint",
+    "leg_right_hip_pitch_joint",
+    "leg_right_knee_pitch_joint",
+    "leg_right_ankle_pitch_joint",
+    "leg_right_ankle_roll_joint"
+  ],
+  "measurement_interpretation": {
+    "reset_qdefault_geometry": "Immediate deterministic reset state before dynamic settling.",
+    "zero_action_dynamic_equilibrium": "All environment-time samples while zero normalized action continuously commands q_default.",
+    "stable_supported_equilibrium": "Samples that are upright, quiet in XY and yaw, and supported by both feet; posture conformity is not required.",
+    "supported_qdefault_equilibrium": "Stable-supported samples that also satisfy the max joint-error near-q_default gate."
+  },
+  "acceptance_thresholds": {
+    "upright_gravity_z_max": -0.97,
+    "quiet_xy_speed_threshold_mps": 0.15,
+    "quiet_yaw_rate_threshold_rad_s": 0.2,
+    "near_default_max_abs_threshold_rad": 0.2,
+    "contact_force_threshold_n": 1.0,
+    "feet_body_pattern": ".*_ankle_roll"
+  },
+  "reset_qdefault_geometry": {
+    "root_frame_height_m": {
+      "count": 64,
+      "mean": 0.0,
+      "std": 0.0,
+      "min": 0.0,
+      "p05": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    },
+    "base_com_height_m": {
+      "count": 64,
+      "mean": 0.4899105727672577,
+      "std": 0.0,
+      "min": 0.4899105727672577,
+      "p05": 0.4899105727672577,
+      "median": 0.4899105727672577,
+      "p95": 0.4899105727672577,
+      "max": 0.4899105727672577
+    },
+    "joint_posture_rms_rad": {
+      "count": 64,
+      "mean": 0.0,
+      "std": 0.0,
+      "min": 0.0,
+      "p05": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    },
+    "joint_posture_max_abs_rad": {
+      "count": 64,
+      "mean": 0.0,
+      "std": 0.0,
+      "min": 0.0,
+      "p05": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    }
+  },
+  "settled_zero_action_snapshot": {
+    "root_frame_height_m": {
+      "count": 64,
+      "mean": 0.07217971980571747,
+      "std": 0.01314430683851242,
+      "min": 0.011030197143554688,
+      "p05": 0.06619377434253693,
+      "median": 0.06945882737636566,
+      "p95": 0.08620354533195496,
+      "max": 0.08778568357229233
+    },
+    "base_com_height_m": {
+      "count": 64,
+      "mean": 0.057351596653461456,
+      "std": 0.0009742664406076074,
+      "min": 0.05617377534508705,
+      "p05": 0.0566970519721508,
+      "median": 0.05696884170174599,
+      "p95": 0.05802987143397331,
+      "max": 0.06210634112358093
+    },
+    "joint_posture_rms_rad": {
+      "count": 64,
+      "mean": 0.08051230013370514,
+      "std": 0.015559195540845394,
+      "min": 0.05892840400338173,
+      "p05": 0.06071712449193001,
+      "median": 0.07774198055267334,
+      "p95": 0.09767695516347885,
+      "max": 0.15866152942180634
+    },
+    "joint_posture_max_abs_rad": {
+      "count": 64,
+      "mean": 0.17114847898483276,
+      "std": 0.04608871042728424,
+      "min": 0.12071281671524048,
+      "p05": 0.1430211067199707,
+      "median": 0.15597647428512573,
+      "p95": 0.2063383311033249,
+      "max": 0.49098917841911316
+    }
+  },
+  "zero_action_dynamic_equilibrium": {
+    "root_frame_height_m": {
+      "count": 6400,
+      "mean": 0.0713895857334137,
+      "std": 0.012504491955041885,
+      "min": 0.010998137295246124,
+      "p05": 0.06617715954780579,
+      "median": 0.06934851408004761,
+      "p95": 0.0838921070098877,
+      "max": 0.08771801739931107
+    },
+    "base_com_height_m": {
+      "count": 6400,
+      "mean": 0.05730167403817177,
+      "std": 0.0009539266466163099,
+      "min": 0.056150779128074646,
+      "p05": 0.0566948801279068,
+      "median": 0.056961048394441605,
+      "p95": 0.0579230897128582,
+      "max": 0.062107961624860764
+    },
+    "joint_posture_rms_rad": {
+      "count": 6400,
+      "mean": 0.07942740619182587,
+      "std": 0.01426652166992426,
+      "min": 0.058916863054037094,
+      "p05": 0.06075282394886017,
+      "median": 0.07769081741571426,
+      "p95": 0.09320223331451416,
+      "max": 0.15851226449012756
+    },
+    "joint_posture_max_abs_rad": {
+      "count": 6400,
+      "mean": 0.16730357706546783,
+      "std": 0.042572855949401855,
+      "min": 0.12070292234420776,
+      "p05": 0.14224663376808167,
+      "median": 0.15658323466777802,
+      "p95": 0.19459255039691925,
+      "max": 0.4904484748840332
+    }
+  },
+  "gate_fractions": {
+    "upright_fraction": 0.0,
+    "quiet_xy_fraction": 1.0,
+    "quiet_yaw_fraction": 1.0,
+    "near_default_fraction": 0.9692187309265137,
+    "both_feet_fraction": 0.03125,
+    "stable_supported_fraction": 0.0,
+    "supported_qdefault_accepted_fraction": 0.0,
+    "accepted_env_samples": 0,
+    "total_env_samples": 6400
+  },
+  "stable_supported_equilibrium": {
+    "base_com_height_m": {
+      "count": 0,
+      "mean": null,
+      "std": null,
+      "min": null,
+      "p05": null,
+      "median": null,
+      "p95": null,
+      "max": null
+    },
+    "joint_posture_max_abs_rad": {
+      "count": 0,
+      "mean": null,
+      "std": null,
+      "min": null,
+      "p05": null,
+      "median": null,
+      "p95": null,
+      "max": null
+    }
+  },
+  "supported_qdefault_equilibrium": {
+    "root_frame_height_m": {
+      "count": 0,
+      "mean": null,
+      "std": null,
+      "min": null,
+      "p05": null,
+      "median": null,
+      "p95": null,
+      "max": null
+    },
+    "base_com_height_m": {
+      "count": 0,
+      "mean": null,
+      "std": null,
+      "min": null,
+      "p05": null,
+      "median": null,
+      "p95": null,
+      "max": null
+    },
+    "joint_posture_rms_rad": {
+      "count": 0,
+      "mean": null,
+      "std": null,
+      "min": null,
+      "p05": null,
+      "median": null,
+      "p95": null,
+      "max": null
+    },
+    "joint_posture_max_abs_rad": {
+      "count": 0,
+      "mean": null,
+      "std": null,
+      "min": null,
+      "p05": null,
+      "median": null,
+      "p95": null,
+      "max": null
+    }
+  }
+}
