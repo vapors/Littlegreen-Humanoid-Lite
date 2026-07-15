@@ -1,0 +1,396 @@
+{
+  "schema_version": 2,
+  "name": "track1_loaded_actuator_extension_v2",
+  "source_archive": "new_standing_pose_tests.zip",
+  "source_archive_sha256": "c40f1cf2d3adb9aa44cd8b84699d5c613440d3bb4828873087297ac7167370ba",
+  "analysis_scope": {
+    "primary_dataset": "Completed runs from the updated-pose 0.25 s minimum-duration speed sweep.",
+    "completed_requested_speeds_rad_s": [
+      1.0,
+      2.0,
+      3.0,
+      4.5
+    ],
+    "missing_requested_speed_note": "No completed 4.0 rad/s run is present in the supplied archive.",
+    "excluded_runs": [
+      {
+        "run_id": "20260711T000322Z_standing_load",
+        "status": "aborted: joint feedback missing or stale",
+        "requested_speed_rad_s": 1.0
+      }
+    ],
+    "pose_library_sha256_completed_runs": [
+      "86227aec535a4b174c942540236da3c66bcdc8fa38aa7bac156c080f664491d7"
+    ],
+    "command_rate_hz": 50.0,
+    "minimum_transition_duration_sec": 0.25,
+    "imu_available": false
+  },
+  "modeling_role": {
+    "base_model": "Keep the suspended single-joint ST3215 model as the nominal actuator model.",
+    "loaded_extension": "Use this dataset to calibrate speed-dependent loaded response envelopes, direction asymmetry, and exact pose-ladder replay validation.",
+    "do_not_infer": [
+      "physical stiffness in N*m/rad",
+      "physical damping in N*m*s/rad",
+      "joint torque directly from load_ratio",
+      "balance stability because IMU fields are unavailable"
+    ]
+  },
+  "family_profiles": {
+    "ankle_pitch": {
+      "speed_response": {
+        "1.0": {
+          "qref_peak_rad_s_median": 0.2662988997210728,
+          "qdot_peak_rad_s_median": 0.22219365507147065,
+          "speed_gain_median": 0.9522097070453948,
+          "tracking_rms_rad_median": 0.01224527043377205,
+          "tracking_p95_rad_median": 0.01994175024251325,
+          "lag_proxy_ms_median": 89.9423360824585,
+          "peak_current_a_median": 0.0195,
+          "peak_load_ratio_median": 0.082
+        },
+        "2.0": {
+          "qref_peak_rad_s_median": 0.4680415909657627,
+          "qdot_peak_rad_s_median": 0.33327119335000693,
+          "speed_gain_median": 0.8712372889672368,
+          "tracking_rms_rad_median": 0.02585332067041295,
+          "tracking_p95_rad_median": 0.03888641297290095,
+          "lag_proxy_ms_median": 99.97367858886719,
+          "peak_current_a_median": 0.029249999999999998,
+          "peak_load_ratio_median": 0.158
+        },
+        "3.0": {
+          "qref_peak_rad_s_median": 0.4998371607358486,
+          "qdot_peak_rad_s_median": 0.391818149009563,
+          "speed_gain_median": 0.6905956754507176,
+          "tracking_rms_rad_median": 0.03322434845237725,
+          "tracking_p95_rad_median": 0.04824369577900335,
+          "lag_proxy_ms_median": 109.93039608001709,
+          "peak_current_a_median": 0.05199999999999995,
+          "peak_load_ratio_median": 0.16399999999999998
+        },
+        "4.5": {
+          "qref_peak_rad_s_median": 0.5039611265645579,
+          "qdot_peak_rad_s_median": 0.37306574212149557,
+          "speed_gain_median": 0.6182249367765938,
+          "tracking_rms_rad_median": 0.03505633937162715,
+          "tracking_p95_rad_median": 0.0509281621578032,
+          "lag_proxy_ms_median": 100.08007287979126,
+          "peak_current_a_median": 0.04875,
+          "peak_load_ratio_median": 0.16599999999999998
+        }
+      },
+      "direction_conditioned_velocity_fit": {
+        "crouch": {
+          "low_demand_gain": 0.835729227211154,
+          "empirical_vmax_rad_s": 0.7697119853572694,
+          "qref_knee_rad_s": 0.9210064220510924,
+          "fit_rmse_rad_s": 0.05740591129089654
+        },
+        "stand_return": {
+          "low_demand_gain": 0.8157768251787225,
+          "empirical_vmax_rad_s": 0.700353006241388,
+          "qref_knee_rad_s": 0.8585105443366239,
+          "fit_rmse_rad_s": 0.052512295466021174
+        }
+      }
+    },
+    "ankle_roll": {
+      "speed_response": {
+        "1.0": {
+          "qref_peak_rad_s_median": 0.1944296046837843,
+          "qdot_peak_rad_s_median": 0.1337128822934689,
+          "speed_gain_median": 0.8613517824964659,
+          "tracking_rms_rad_median": 0.01093547870915185,
+          "tracking_p95_rad_median": 0.014572817484913549,
+          "lag_proxy_ms_median": 70.01996040344238,
+          "peak_current_a_median": 0.0195,
+          "peak_load_ratio_median": 0.084
+        },
+        "2.0": {
+          "qref_peak_rad_s_median": 0.273098825644688,
+          "qdot_peak_rad_s_median": 0.23339551081324775,
+          "speed_gain_median": 0.745663885516394,
+          "tracking_rms_rad_median": 0.01564320415306285,
+          "tracking_p95_rad_median": 0.0207087406364561,
+          "lag_proxy_ms_median": 79.87165451049805,
+          "peak_current_a_median": 0.02275,
+          "peak_load_ratio_median": 0.096
+        },
+        "3.0": {
+          "qref_peak_rad_s_median": 0.4041125176874357,
+          "qdot_peak_rad_s_median": 0.2762629445565909,
+          "speed_gain_median": 0.6513418300427003,
+          "tracking_rms_rad_median": 0.0210996415922273,
+          "tracking_p95_rad_median": 0.0283786445758843,
+          "lag_proxy_ms_median": 79.9100399017334,
+          "peak_current_a_median": 0.026,
+          "peak_load_ratio_median": 0.10800000000000001
+        },
+        "4.5": {
+          "qref_peak_rad_s_median": 0.49818177558135124,
+          "qdot_peak_rad_s_median": 0.3327070658860423,
+          "speed_gain_median": 0.6444601125500173,
+          "tracking_rms_rad_median": 0.02874987406632755,
+          "tracking_p95_rad_median": 0.03934660720926665,
+          "lag_proxy_ms_median": 79.9715518951416,
+          "peak_current_a_median": 0.029249999999999998,
+          "peak_load_ratio_median": 0.134
+        }
+      },
+      "direction_conditioned_velocity_fit": {
+        "crouch": {
+          "low_demand_gain": 0.7068385177542612,
+          "empirical_vmax_rad_s": 0.7221514635426171,
+          "qref_knee_rad_s": 1.0216639945386783,
+          "fit_rmse_rad_s": 0.050963244177471945
+        },
+        "stand_return": {
+          "low_demand_gain": 0.7100238552497466,
+          "empirical_vmax_rad_s": 0.757723806246477,
+          "qref_knee_rad_s": 1.0671807723698976,
+          "fit_rmse_rad_s": 0.05115972273496522
+        }
+      }
+    },
+    "hip_pitch": {
+      "speed_response": {
+        "1.0": {
+          "qref_peak_rad_s_median": 0.8984297740919546,
+          "qdot_peak_rad_s_median": 0.8015766587365527,
+          "speed_gain_median": 0.892133246584359,
+          "tracking_rms_rad_median": 0.0648946861784562,
+          "tracking_p95_rad_median": 0.08973787609130984,
+          "lag_proxy_ms_median": 80.00874519348145,
+          "peak_current_a_median": 0.0455,
+          "peak_load_ratio_median": 0.20400000000000001
+        },
+        "2.0": {
+          "qref_peak_rad_s_median": 1.7721663243525352,
+          "qdot_peak_rad_s_median": 1.05267418200025,
+          "speed_gain_median": 0.6916924790805812,
+          "tracking_rms_rad_median": 0.12333038006406405,
+          "tracking_p95_rad_median": 0.18795099603568816,
+          "lag_proxy_ms_median": 139.8029327392578,
+          "peak_current_a_median": 0.06499999999999995,
+          "peak_load_ratio_median": 0.3
+        },
+        "3.0": {
+          "qref_peak_rad_s_median": 2.0564712356844668,
+          "qdot_peak_rad_s_median": 0.9715150781391582,
+          "speed_gain_median": 0.4910612473255925,
+          "tracking_rms_rad_median": 0.1488130319649268,
+          "tracking_p95_rad_median": 0.21690488340702968,
+          "lag_proxy_ms_median": 139.86217975616455,
+          "peak_current_a_median": 0.0844999999999999,
+          "peak_load_ratio_median": 0.33199999999999996
+        },
+        "4.5": {
+          "qref_peak_rad_s_median": 2.074248206196545,
+          "qdot_peak_rad_s_median": 0.9101574027734254,
+          "speed_gain_median": 0.42917861764872434,
+          "tracking_rms_rad_median": 0.13967933015531295,
+          "tracking_p95_rad_median": 0.21767187380097242,
+          "lag_proxy_ms_median": 159.8653793334961,
+          "peak_current_a_median": 0.07799999999999994,
+          "peak_load_ratio_median": 0.324
+        }
+      },
+      "direction_conditioned_velocity_fit": {
+        "crouch": {
+          "low_demand_gain": 0.5561976464574944,
+          "empirical_vmax_rad_s": 1.70053602694104,
+          "qref_knee_rad_s": 3.057431180753833,
+          "fit_rmse_rad_s": 0.23496238591710872
+        },
+        "stand_return": {
+          "low_demand_gain": 0.5687273072895153,
+          "empirical_vmax_rad_s": 1.7304575268159563,
+          "qref_knee_rad_s": 3.0426840853890154,
+          "fit_rmse_rad_s": 0.2879954273196958
+        }
+      }
+    },
+    "hip_roll": {
+      "speed_response": {
+        "1.0": {
+          "qref_peak_rad_s_median": 0.23326741188281702,
+          "qdot_peak_rad_s_median": 0.18827505299479705,
+          "speed_gain_median": 0.8850553790128107,
+          "tracking_rms_rad_median": 0.0135875091674326,
+          "tracking_p95_rad_median": 0.01917475984857045,
+          "lag_proxy_ms_median": 79.93745803833008,
+          "peak_current_a_median": 0.029249999999999998,
+          "peak_load_ratio_median": 0.1
+        },
+        "2.0": {
+          "qref_peak_rad_s_median": 0.3851258859967317,
+          "qdot_peak_rad_s_median": 0.30082653090130784,
+          "speed_gain_median": 0.7678554432203429,
+          "tracking_rms_rad_median": 0.02268188113608595,
+          "tracking_p95_rad_median": 0.0307946643168042,
+          "lag_proxy_ms_median": 59.99565124511719,
+          "peak_current_a_median": 0.026,
+          "peak_load_ratio_median": 0.124
+        },
+        "3.0": {
+          "qref_peak_rad_s_median": 0.540438725672933,
+          "qdot_peak_rad_s_median": 0.3646598381502103,
+          "speed_gain_median": 0.7217138091134592,
+          "tracking_rms_rad_median": 0.030793086857678648,
+          "tracking_p95_rad_median": 0.04318155917898075,
+          "lag_proxy_ms_median": 79.92243766784668,
+          "peak_current_a_median": 0.0325,
+          "peak_load_ratio_median": 0.144
+        },
+        "4.5": {
+          "qref_peak_rad_s_median": 0.5425150996944335,
+          "qdot_peak_rad_s_median": 0.3926059054290717,
+          "speed_gain_median": 0.7234679964144626,
+          "tracking_rms_rad_median": 0.032192418776734705,
+          "tracking_p95_rad_median": 0.0466330159517234,
+          "lag_proxy_ms_median": 90.03865718841553,
+          "peak_current_a_median": 0.029249999999999998,
+          "peak_load_ratio_median": 0.14200000000000002
+        }
+      },
+      "direction_conditioned_velocity_fit": {
+        "crouch": {
+          "low_demand_gain": 0.853240864877988,
+          "empirical_vmax_rad_s": 0.40581949464787187,
+          "qref_knee_rad_s": 0.4756212593098238,
+          "fit_rmse_rad_s": 0.04426404680459367
+        },
+        "stand_return": {
+          "low_demand_gain": 0.7717192457086172,
+          "empirical_vmax_rad_s": 0.39511696307122546,
+          "qref_knee_rad_s": 0.5119957358435664,
+          "fit_rmse_rad_s": 0.04000754928574537
+        }
+      }
+    },
+    "hip_yaw": {
+      "speed_response": {
+        "1.0": {
+          "qref_peak_rad_s_median": 0.07779134771321286,
+          "qdot_peak_rad_s_median": 0.0989642057382147,
+          "speed_gain_median": 0.9775550156812542,
+          "tracking_rms_rad_median": 0.01814742872030895,
+          "tracking_p95_rad_median": 0.025310683000113,
+          "lag_proxy_ms_median": 139.88053798675537,
+          "peak_current_a_median": 0.06174999999999995,
+          "peak_load_ratio_median": 0.14200000000000002
+        },
+        "2.0": {
+          "qref_peak_rad_s_median": 0.07738581676231404,
+          "qdot_peak_rad_s_median": 0.09731379248647634,
+          "speed_gain_median": 0.662678591074104,
+          "tracking_rms_rad_median": 0.020182125918036,
+          "tracking_p95_rad_median": 0.02377670221222735,
+          "lag_proxy_ms_median": 119.96650695800781,
+          "peak_current_a_median": 0.06175,
+          "peak_load_ratio_median": 0.134
+        },
+        "3.0": {
+          "qref_peak_rad_s_median": 0.13536037746503954,
+          "qdot_peak_rad_s_median": 0.08964637331552244,
+          "speed_gain_median": 0.5594263168433231,
+          "tracking_rms_rad_median": 0.0202440452582096,
+          "tracking_p95_rad_median": 0.02300971181828455,
+          "lag_proxy_ms_median": 69.95189189910889,
+          "peak_current_a_median": 0.05525,
+          "peak_load_ratio_median": 0.128
+        },
+        "4.5": {
+          "qref_peak_rad_s_median": 0.11566804344477172,
+          "qdot_peak_rad_s_median": 0.0925462690447922,
+          "speed_gain_median": 0.5005168914112037,
+          "tracking_rms_rad_median": 0.016574793107388,
+          "tracking_p95_rad_median": 0.02335485749555885,
+          "lag_proxy_ms_median": 99.98142719268799,
+          "peak_current_a_median": 0.042249999999999996,
+          "peak_load_ratio_median": 0.124
+        }
+      },
+      "direction_conditioned_velocity_fit": {
+        "crouch": {
+          "low_demand_gain": 0.7742168144674261,
+          "empirical_vmax_rad_s": 0.6443286768088556,
+          "qref_knee_rad_s": 0.832232863932413,
+          "fit_rmse_rad_s": 0.06390527423401743
+        },
+        "stand_return": {
+          "low_demand_gain": 0.7080706538042757,
+          "empirical_vmax_rad_s": 0.49366834121343106,
+          "qref_knee_rad_s": 0.6972020921373907,
+          "fit_rmse_rad_s": 0.03471439774057237
+        }
+      }
+    },
+    "knee_pitch": {
+      "speed_response": {
+        "1.0": {
+          "qref_peak_rad_s_median": 1.0153163730174202,
+          "qdot_peak_rad_s_median": 0.7693951499577355,
+          "speed_gain_median": 0.8645694788072402,
+          "tracking_rms_rad_median": 0.06219610087176935,
+          "tracking_p95_rad_median": 0.0856344774837159,
+          "lag_proxy_ms_median": 99.93672370910645,
+          "peak_current_a_median": 0.07474999999999996,
+          "peak_load_ratio_median": 0.216
+        },
+        "2.0": {
+          "qref_peak_rad_s_median": 1.9900430072284436,
+          "qdot_peak_rad_s_median": 1.179102405181908,
+          "speed_gain_median": 0.6877309654243104,
+          "tracking_rms_rad_median": 0.12290343286810945,
+          "tracking_p95_rad_median": 0.17901555794625434,
+          "lag_proxy_ms_median": 119.9483871459961,
+          "peak_current_a_median": 0.07150000000000001,
+          "peak_load_ratio_median": 0.31
+        },
+        "3.0": {
+          "qref_peak_rad_s_median": 2.4480380386293654,
+          "qdot_peak_rad_s_median": 0.9487991054653548,
+          "speed_gain_median": 0.4935630029772833,
+          "tracking_rms_rad_median": 0.1664923399105394,
+          "tracking_p95_rad_median": 0.24405634335260545,
+          "lag_proxy_ms_median": 129.92173433303833,
+          "peak_current_a_median": 0.065,
+          "peak_load_ratio_median": 0.318
+        },
+        "4.5": {
+          "qref_peak_rad_s_median": 2.666762835726568,
+          "qdot_peak_rad_s_median": 0.9594508125323173,
+          "speed_gain_median": 0.4338260177668666,
+          "tracking_rms_rad_median": 0.20750791514096256,
+          "tracking_p95_rad_median": 0.32497382991357304,
+          "lag_proxy_ms_median": 139.9485468864441,
+          "peak_current_a_median": 0.091,
+          "peak_load_ratio_median": 0.358
+        }
+      },
+      "direction_conditioned_velocity_fit": {
+        "crouch": {
+          "low_demand_gain": 0.7093610570990286,
+          "empirical_vmax_rad_s": 1.1776129510006368,
+          "qref_knee_rad_s": 1.6601037500092692,
+          "fit_rmse_rad_s": 0.19217350261301622
+        },
+        "stand_return": {
+          "low_demand_gain": 0.7146960927876614,
+          "empirical_vmax_rad_s": 1.1630749813090666,
+          "qref_knee_rad_s": 1.6273700011042596,
+          "fit_rmse_rad_s": 0.209272050393911
+        }
+      }
+    }
+  },
+  "recommended_track1_interpretation": {
+    "knee_pitch": "Strongest loaded correction candidate: pronounced speed saturation plus persistent stand-return effort asymmetry.",
+    "hip_pitch": "Strong speed-dependent tracking degradation and velocity saturation; directional tracking asymmetry is comparatively small.",
+    "ankle_pitch": "Speed-sensitive response and declining speed gain. The earlier broad stand-return penalty is not persistent across the updated-pose speed sweep.",
+    "roll_families": "Milder loaded response; use conservative family randomization or validation rather than aggressive direction conditioning.",
+    "hip_yaw": "Use cautiously because movement amplitudes are smaller and the speed sweep is less informative for this family."
+  }
+}

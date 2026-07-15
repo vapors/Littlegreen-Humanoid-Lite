@@ -1,0 +1,690 @@
+dataset:
+  name: berkeley_humanoid_lite_st3215_track1_actuator_identification_v2
+  revision_note: Nominal left-knee source replaced with final post-mechanical-correction
+    run after removal of an interfering long servo-horn screw.
+  source_archive_sha256:
+    all_12joint_identification_reports.zip: 9f67589c5570552fc11ea7a7a7861061d374f6fa3b9bdd41080359fb4771d1aa
+    corrected_left_knee_final.zip: 942732c939b3a1757734bde8649e64dc02535054bb9258b87ea480b049b1ade8
+  joint_count: 12
+  trial_count: 120
+  amplitudes_rad:
+  - 0.02
+  - 0.05
+  - 0.1
+  - 0.15
+  - 0.2
+  directions:
+  - positive
+  - negative
+  motion_profile: max_envelope_fixed_0_0
+  support_condition: securely suspended, feet unloaded
+  command_rate_hz: 50
+identifiability:
+  effective_closed_loop_stiffness_nm_per_rad:
+    status: not_identified
+    reason: No known external torque was applied. Do not infer Nm/rad from load_ratio.
+  physical_damping_nms_per_rad:
+    status: not_identified
+    reason: Step response without known reflected inertia/torque cannot uniquely identify
+      physical damping. Use tau_eq and overshoot behavior as response proxies.
+  true_deadband_rad:
+    status: bounded_not_directly_identified
+    reason: Step sweep begins at 0.02 rad; use small-signal residual error and center
+      hysteresis as proxies. Run deadband_staircase for direct threshold identification.
+  hard_velocity_saturation_rad_s:
+    status: not_reached
+    reason: Peak velocity was still increasing at 0.20 rad. Curves are empirical response
+      constraints and lower bounds only.
+global_timing_envelope:
+  ros_publish_to_driver_receipt_ms:
+    p05: 0.2404758
+    median: 0.344016
+    p95: 0.5403199
+  driver_receipt_to_sync_write_start_ms:
+    p05: 0.8063604
+    median: 10.277315999999999
+    p95: 19.474222949999998
+  sync_write_end_to_first_encoder_ms:
+    p05: 43.44220505
+    median: 62.590821000000005
+    p95: 68.9510989
+  sync_write_end_to_sustained_motion_ms:
+    p05: 59.44089995
+    median: 65.27202750000001
+    p95: 85.035734
+  equivalent_first_order_tau_ms:
+    p05: 53.376182780634295
+    median: 71.10681566715994
+    p95: 82.66830556310735
+  settling_1_encoder_ms:
+    p05: 262.8063019
+    median: 343.8110285
+    p95: 924.1678388000001
+  steady_state_error_abs_rad:
+    median: 0.0048931911510902495
+    p95: 0.009284444168967784
+track1_modeling_guidance:
+  separate_transport_from_actuator_dynamics: true
+  transport_model:
+    ros_publish_to_driver_receipt_s_typical:
+    - 0.00024047579999999998
+    - 0.0005403198999999999
+    bus_phase_wait_s_typical:
+    - 0.0
+    - 0.02
+    note: Do not fold physical onset into pure action transport delay.
+  actuator_response_model:
+    recommended_initial_structure: bus-phase delay + actuator onset delay + amplitude-dependent
+      velocity response + first-order-equivalent lag + deadband/hysteresis + residual
+      error floor
+    use_family_specific_ranges: true
+    equivalent_tau_is_proxy_not_physical_damping: true
+  nominal_bilateral_randomization:
+    most_joint_families_peak_velocity_scale_fraction: approximately +/-5% supported
+      by medium/large-signal data
+    knee_pitch: final corrected left-knee run now included as nominal source; preserve
+      direction-dependent overshoot/settling tails rather than old mechanically impaired
+      response
+family_profiles:
+  ankle_pitch:
+    velocity_response_curve:
+    - amplitude_rad: 0.02
+      peak_velocity_rad_s_mean: 0.14606189414552184
+      min: 0.1335564950185847
+      max: 0.17324722583028418
+    - amplitude_rad: 0.05
+      peak_velocity_rad_s_mean: 0.34275489640041507
+      min: 0.32043553929774543
+      max: 0.35709563755734314
+    - amplitude_rad: 0.1
+      peak_velocity_rad_s_mean: 0.5694922241787913
+      min: 0.555606420160412
+      max: 0.5787928599348182
+    - amplitude_rad: 0.15
+      peak_velocity_rad_s_mean: 0.744824428613793
+      min: 0.7214238573560388
+      max: 0.7631226747656323
+    - amplitude_rad: 0.2
+      peak_velocity_rad_s_mean: 0.9054846155973821
+      min: 0.8929317578819711
+      max: 0.9321997832856611
+    velocity_saturation:
+      status: not_reached_by_0p20_rad_step
+      observed_lower_bound_rad_s: 0.9321997832856611
+    actuator_onset_sustained_motion_s:
+      p10: 0.06367853750000001
+      median: 0.066303237
+      p90: 0.0686335957
+    equivalent_first_order_tau_s:
+      p10: 0.053287932334139164
+      median: 0.06810058313720711
+      p90: 0.0826620085964055
+    settling_1_encoder_s_median: 0.3194627885
+    steady_state_error_abs_rad_median_large: 0.005184439938523605
+    static_gain_median_large: 0.9638512617214778
+    overshoot_percent_max: 0.0
+    bilateral_peak_velocity_asymmetry_fraction_median_large: 0.010843877337844234
+    peak_load_ratio_0p20_mean: 0.246
+    peak_current_a_0p20_mean: 0.040624999999999994
+    small_signal_error_floor_rad_by_side:
+      left: 0.005427182515086414
+      right: 0.003126211333257939
+    center_hysteresis_span_rad_by_side:
+      left: 0.010737865515199493
+      right: 0.007669903939428208
+  ankle_roll:
+    velocity_response_curve:
+    - amplitude_rad: 0.02
+      peak_velocity_rad_s_mean: 0.14420613595231058
+      min: 0.12299951112678328
+      max: 0.16042970605702397
+    - amplitude_rad: 0.05
+      peak_velocity_rad_s_mean: 0.34677366198793635
+      min: 0.33733516492074117
+      max: 0.35947174201768595
+    - amplitude_rad: 0.1
+      peak_velocity_rad_s_mean: 0.5584885668929007
+      min: 0.5497661543240457
+      max: 0.567506855867685
+    - amplitude_rad: 0.15
+      peak_velocity_rad_s_mean: 0.7531680840234762
+      min: 0.7424194120544705
+      max: 0.7716069060147039
+    - amplitude_rad: 0.2
+      peak_velocity_rad_s_mean: 0.9148467054003422
+      min: 0.8956475056457859
+      max: 0.9338466755926603
+    velocity_saturation:
+      status: not_reached_by_0p20_rad_step
+      observed_lower_bound_rad_s: 0.9338466755926603
+    actuator_onset_sustained_motion_s:
+      p10: 0.0620614513
+      median: 0.0636494415
+      p90: 0.0667465227
+    equivalent_first_order_tau_s:
+      p10: 0.06471166414512697
+      median: 0.07100886732714053
+      p90: 0.08285978300894498
+    settling_1_encoder_s_median: 0.330792215
+    steady_state_error_abs_rad_median_large: 0.0036504591506379414
+    static_gain_median_large: 0.9727994829841442
+    overshoot_percent_max: 0.0
+    bilateral_peak_velocity_asymmetry_fraction_median_large: 0.024121940567782243
+    peak_load_ratio_0p20_mean: 0.236
+    peak_current_a_0p20_mean: 0.039
+    small_signal_error_floor_rad_by_side:
+      left: 0.00466019212114359
+      right: 0.003893201727200769
+    center_hysteresis_span_rad_by_side:
+      left: 0.007669903939428206
+      right: 0.006135923151542565
+  hip_pitch:
+    velocity_response_curve:
+    - amplitude_rad: 0.02
+      peak_velocity_rad_s_mean: 0.13776483636346876
+      min: 0.12094830818156492
+      max: 0.15748015375359126
+    - amplitude_rad: 0.05
+      peak_velocity_rad_s_mean: 0.31753754610018897
+      min: 0.30636338934085094
+      max: 0.34824771837094437
+    - amplitude_rad: 0.1
+      peak_velocity_rad_s_mean: 0.5614859589813586
+      min: 0.5504147986800242
+      max: 0.5838058281888883
+    - amplitude_rad: 0.15
+      peak_velocity_rad_s_mean: 0.744645997606469
+      min: 0.7291289088743989
+      max: 0.7658113958681495
+    - amplitude_rad: 0.2
+      peak_velocity_rad_s_mean: 0.9016085545840665
+      min: 0.8899283041360939
+      max: 0.9135738220474263
+    velocity_saturation:
+      status: not_reached_by_0p20_rad_step
+      observed_lower_bound_rad_s: 0.9135738220474263
+    actuator_onset_sustained_motion_s:
+      p10: 0.06430316670000001
+      median: 0.0702859275
+      p90: 0.0820073354
+    equivalent_first_order_tau_s:
+      p10: 0.05434498254373392
+      median: 0.07368359732999023
+      p90: 0.08178577672650073
+    settling_1_encoder_s_median: 0.35118524
+    steady_state_error_abs_rad_median_large: 0.004893191151090249
+    static_gain_median_large: 0.966407896367954
+    overshoot_percent_max: 15.048559091423176
+    bilateral_peak_velocity_asymmetry_fraction_median_large: 0.019433073560563525
+    peak_load_ratio_0p20_mean: 0.281
+    peak_current_a_0p20_mean: 0.08125
+    small_signal_error_floor_rad_by_side:
+      left: 0.0038932017272007707
+      right: 0.001592230545372303
+    center_hysteresis_span_rad_by_side:
+      left: 0.01073786551519948
+      right: 0.006135923151542572
+  hip_roll:
+    velocity_response_curve:
+    - amplitude_rad: 0.02
+      peak_velocity_rad_s_mean: 0.1440532710450354
+      min: 0.12238916627924566
+      max: 0.16083060861414922
+    - amplitude_rad: 0.05
+      peak_velocity_rad_s_mean: 0.3549240595256383
+      min: 0.33300546646355206
+      max: 0.37643098426229216
+    - amplitude_rad: 0.1
+      peak_velocity_rad_s_mean: 0.5626534460896777
+      min: 0.5522722314345443
+      max: 0.5726477810098239
+    - amplitude_rad: 0.15
+      peak_velocity_rad_s_mean: 0.7533454233097322
+      min: 0.7359038590477733
+      max: 0.7776264304310627
+    - amplitude_rad: 0.2
+      peak_velocity_rad_s_mean: 0.9159256551785426
+      min: 0.8976870552727443
+      max: 0.9366648201119887
+    velocity_saturation:
+      status: not_reached_by_0p20_rad_step
+      observed_lower_bound_rad_s: 0.9366648201119887
+    actuator_onset_sustained_motion_s:
+      p10: 0.06190965
+      median: 0.06356524449999999
+      p90: 0.06743078949999999
+    equivalent_first_order_tau_s:
+      p10: 0.05700075030647868
+      median: 0.0756483812417166
+      p90: 0.08223597545001912
+    settling_1_encoder_s_median: 0.328251094
+    steady_state_error_abs_rad_median_large: 0.003504834756921281
+    static_gain_median_large: 0.9779127522770962
+    overshoot_percent_max: 0.0
+    bilateral_peak_velocity_asymmetry_fraction_median_large: 0.025934991651564772
+    peak_load_ratio_0p20_mean: 0.244
+    peak_current_a_0p20_mean: 0.047125
+    small_signal_error_floor_rad_by_side:
+      left: 0.0038932017272007673
+      right: 0.005427182515086409
+    center_hysteresis_span_rad_by_side:
+      left: 0.006135923151542565
+      right: 0.01227184630308513
+  hip_yaw:
+    velocity_response_curve:
+    - amplitude_rad: 0.02
+      peak_velocity_rad_s_mean: 0.13470731079883708
+      min: 0.0818144808116292
+      max: 0.1821133950721306
+    - amplitude_rad: 0.05
+      peak_velocity_rad_s_mean: 0.3197746119401156
+      min: 0.26894811656331996
+      max: 0.3802947813766284
+    - amplitude_rad: 0.1
+      peak_velocity_rad_s_mean: 0.5359794087243147
+      min: 0.4652252568589027
+      max: 0.585739242790082
+    - amplitude_rad: 0.15
+      peak_velocity_rad_s_mean: 0.7276113163626443
+      min: 0.6870767780772031
+      max: 0.7529583432334246
+    - amplitude_rad: 0.2
+      peak_velocity_rad_s_mean: 0.8779050824784409
+      min: 0.8347778885866465
+      max: 0.8990150640242536
+    velocity_saturation:
+      status: not_reached_by_0p20_rad_step
+      observed_lower_bound_rad_s: 0.8990150640242536
+    actuator_onset_sustained_motion_s:
+      p10: 0.0620919188
+      median: 0.0649527245
+      p90: 0.08126175000000001
+    equivalent_first_order_tau_s:
+      p10: 0.06470798504919686
+      median: 0.07376044996569338
+      p90: 0.08260304184292186
+    settling_1_encoder_s_median: 0.8084466225
+    steady_state_error_abs_rad_median_large: 0.007029103726522268
+    static_gain_median_large: 0.9625729443982398
+    overshoot_percent_max: 16.582539879308733
+    bilateral_peak_velocity_asymmetry_fraction_median_large: 0.033210420032897314
+    peak_load_ratio_0p20_mean: 0.31100000000000005
+    peak_current_a_0p20_mean: 0.11374999999999999
+    small_signal_error_floor_rad_by_side:
+      left: 0.004660192121143575
+      right: 0.005427182515086407
+    center_hysteresis_span_rad_by_side:
+      left: 0.01073786551519948
+      right: 0.012271846303085115
+  knee_pitch:
+    velocity_response_curve:
+    - amplitude_rad: 0.02
+      peak_velocity_rad_s_mean: 0.12233674737255112
+      min: 0.10403341784866205
+      max: 0.16982428443157088
+    - amplitude_rad: 0.05
+      peak_velocity_rad_s_mean: 0.34132221159284803
+      min: 0.29536647076005157
+      max: 0.42725517302055604
+    - amplitude_rad: 0.1
+      peak_velocity_rad_s_mean: 0.5760576355465543
+      min: 0.5495365081306143
+      max: 0.6210930709012705
+    - amplitude_rad: 0.15
+      peak_velocity_rad_s_mean: 0.7445754435234342
+      min: 0.7264354866484349
+      max: 0.788208140921996
+    - amplitude_rad: 0.2
+      peak_velocity_rad_s_mean: 0.9150551009792636
+      min: 0.8902888667411344
+      max: 0.9472497076945838
+    velocity_saturation:
+      status: not_reached_by_0p20_rad_step
+      observed_lower_bound_rad_s: 0.9472497076945838
+    actuator_onset_sustained_motion_s:
+      p10: 0.0635566006
+      median: 0.06582919599999999
+      p90: 0.0846779401
+    equivalent_first_order_tau_s:
+      p10: 0.06009353124935276
+      median: 0.0649003652020315
+      p90: 0.08258904127132927
+    settling_1_encoder_s_median: 0.30596583699999996
+    steady_state_error_abs_rad_median_large: 0.00657279633269256
+    static_gain_median_large: 0.9587379924285263
+    overshoot_percent_max: 15.048559091422863
+    bilateral_peak_velocity_asymmetry_fraction_median_large: 0.03312005190166916
+    peak_load_ratio_0p20_mean: 0.271
+    peak_current_a_0p20_mean: 0.06175
+    small_signal_error_floor_rad_by_side:
+      left: 0.005368932757599754
+      right: 0.006194172909029294
+    center_hysteresis_span_rad_by_side:
+      left: 0.010737865515199507
+      right: 0.01380582709097078
+joint_profiles:
+  leg_left_hip_roll_joint:
+    joint_family: hip_roll
+    side: left
+    servo_id: 1
+    servo_sign: -1
+    reliable_small_step_threshold_rad: 0.02
+    small_signal_residual_error_abs_rad_median: 0.0038932017272007673
+    trial_start_center_hysteresis_span_rad: 0.006135923151542565
+    large_signal_static_gain_median: 0.9817477042468103
+    large_signal_steady_error_abs_rad_median: 0.0033592103632046205
+    write_to_sustained_motion_ms_median: 64.2758755
+    equivalent_first_order_tau_ms_median: 78.48864530228244
+    equivalent_first_order_tau_ms_p10: 60.40907100216242
+    equivalent_first_order_tau_ms_p90: 82.5934080074831
+    settling_1_encoder_ms_median: 328.251094
+    overshoot_percent_max: 0.0
+    response_class: monotonic_nonoscillatory_over_tested_range
+    velocity_saturation_status: not_reached_by_0p20_rad_step
+    observed_velocity_lower_bound_rad_s: 0.9366648201119887
+    peak_velocity_0p02_rad_s_mean: 0.1599211289934907
+    peak_velocity_0p05_rad_s_mean: 0.3672376275589496
+    peak_velocity_0p10_rad_s_mean: 0.5687369042201524
+    peak_velocity_0p15_rad_s_mean: 0.7686608842873164
+    peak_velocity_0p20_rad_s_mean: 0.9278029172887974
+    peak_load_ratio_0p20_mean: 0.238
+    peak_current_a_0p20_mean: 0.0455
+    quality_flag: ok
+  leg_left_hip_yaw_joint:
+    joint_family: hip_yaw
+    side: left
+    servo_id: 2
+    servo_sign: -1
+    reliable_small_step_threshold_rad: 0.02
+    small_signal_residual_error_abs_rad_median: 0.004660192121143575
+    trial_start_center_hysteresis_span_rad: 0.01073786551519948
+    large_signal_static_gain_median: 0.958737992428526
+    large_signal_steady_error_abs_rad_median: 0.007029103726522268
+    write_to_sustained_motion_ms_median: 65.867671
+    equivalent_first_order_tau_ms_median: 73.76044996569338
+    equivalent_first_order_tau_ms_p10: 63.13900906214532
+    equivalent_first_order_tau_ms_p90: 78.20908102545067
+    settling_1_encoder_ms_median: 926.5948089999999
+    overshoot_percent_max: 16.582539879308733
+    response_class: underdamped_or_hysteretic_overshoot_observed
+    velocity_saturation_status: not_reached_by_0p20_rad_step
+    observed_velocity_lower_bound_rad_s: 0.8990150640242536
+    peak_velocity_0p02_rad_s_mean: 0.13745068365579424
+    peak_velocity_0p05_rad_s_mean: 0.33239427999779997
+    peak_velocity_0p10_rad_s_mean: 0.546476567624137
+    peak_velocity_0p15_rad_s_mean: 0.7352050720699749
+    peak_velocity_0p20_rad_s_mean: 0.892482880747503
+    peak_load_ratio_0p20_mean: 0.30200000000000005
+    peak_current_a_0p20_mean: 0.10724999999999998
+    quality_flag: ok
+  leg_left_hip_pitch_joint:
+    joint_family: hip_pitch
+    side: left
+    servo_id: 3
+    servo_sign: -1
+    reliable_small_step_threshold_rad: 0.02
+    small_signal_residual_error_abs_rad_median: 0.0038932017272007707
+    trial_start_center_hysteresis_span_rad: 0.01073786551519948
+    large_signal_static_gain_median: 0.966407896367954
+    large_signal_steady_error_abs_rad_median: 0.00458250815097717
+    write_to_sustained_motion_ms_median: 72.54573500000001
+    equivalent_first_order_tau_ms_median: 73.68140888732961
+    equivalent_first_order_tau_ms_p10: 61.947858859750916
+    equivalent_first_order_tau_ms_p90: 79.73455276583303
+    settling_1_encoder_ms_median: 332.434235
+    overshoot_percent_max: 0.0
+    response_class: monotonic_nonoscillatory_over_tested_range
+    velocity_saturation_status: not_reached_by_0p20_rad_step
+    observed_velocity_lower_bound_rad_s: 0.9135738220474263
+    peak_velocity_0p02_rad_s_mean: 0.12853602466007175
+    peak_velocity_0p05_rad_s_mean: 0.3069279932357105
+    peak_velocity_0p10_rad_s_mean: 0.5509577424978689
+    peak_velocity_0p15_rad_s_mean: 0.7374106173824361
+    peak_velocity_0p20_rad_s_mean: 0.9022010275417774
+    peak_load_ratio_0p20_mean: 0.28800000000000003
+    peak_current_a_0p20_mean: 0.09425
+    quality_flag: ok
+  leg_left_knee_pitch_joint:
+    joint_family: knee_pitch
+    side: left
+    servo_id: 4
+    servo_sign: -1
+    reliable_small_step_threshold_rad: 0.02
+    small_signal_residual_error_abs_rad_median: 0.005368932757599754
+    trial_start_center_hysteresis_span_rad: 0.010737865515199507
+    large_signal_static_gain_median: 0.96257294439824
+    large_signal_steady_error_abs_rad_median: 0.006572796332692532
+    write_to_sustained_motion_ms_median: 74.76643999999999
+    equivalent_first_order_tau_ms_median: 67.98579082029894
+    equivalent_first_order_tau_ms_p10: 59.036045672335895
+    equivalent_first_order_tau_ms_p90: 77.37895536655637
+    settling_1_encoder_ms_median: 322.3020535
+    overshoot_percent_max: 15.048559091422863
+    response_class: underdamped_or_hysteretic_overshoot_observed
+    velocity_saturation_status: not_reached_by_0p20_rad_step
+    observed_velocity_lower_bound_rad_s: 0.9472497076945838
+    peak_velocity_0p02_rad_s_mean: 0.13980651141134964
+    peak_velocity_0p05_rad_s_mean: 0.36131082189030383
+    peak_velocity_0p10_rad_s_mean: 0.5853147895159424
+    peak_velocity_0p15_rad_s_mean: 0.7605717261407328
+    peak_velocity_0p20_rad_s_mean: 0.9302084371979238
+    peak_load_ratio_0p20_mean: 0.27
+    peak_current_a_0p20_mean: 0.058499999999999996
+    quality_flag: corrected_post_mechanical_interference_removal; use as nominal source;
+      negative-direction overshoot/long-settling tails remain
+  leg_left_ankle_pitch_joint:
+    joint_family: ankle_pitch
+    side: left
+    servo_id: 5
+    servo_sign: 1
+    reliable_small_step_threshold_rad: 0.02
+    small_signal_residual_error_abs_rad_median: 0.005427182515086414
+    trial_start_center_hysteresis_span_rad: 0.010737865515199493
+    large_signal_static_gain_median: 0.9664078963679539
+    large_signal_steady_error_abs_rad_median: 0.005184439938523605
+    write_to_sustained_motion_ms_median: 67.5801395
+    equivalent_first_order_tau_ms_median: 69.32546111634515
+    equivalent_first_order_tau_ms_p10: 54.9648992395736
+    equivalent_first_order_tau_ms_p90: 81.29130146384135
+    settling_1_encoder_ms_median: 302.354019
+    overshoot_percent_max: 0.0
+    response_class: monotonic_nonoscillatory_over_tested_range
+    velocity_saturation_status: not_reached_by_0p20_rad_step
+    observed_velocity_lower_bound_rad_s: 0.9321997832856611
+    peak_velocity_0p02_rad_s_mean: 0.13714341402743835
+    peak_velocity_0p05_rad_s_mean: 0.35533336679811617
+    peak_velocity_0p10_rad_s_mean: 0.5725799760907168
+    peak_velocity_0p15_rad_s_mean: 0.7473755911667506
+    peak_velocity_0p20_rad_s_mean: 0.9137536826264377
+    peak_load_ratio_0p20_mean: 0.248
+    peak_current_a_0p20_mean: 0.039
+    quality_flag: ok
+  leg_left_ankle_roll_joint:
+    joint_family: ankle_roll
+    side: left
+    servo_id: 6
+    servo_sign: 1
+    reliable_small_step_threshold_rad: 0.02
+    small_signal_residual_error_abs_rad_median: 0.00466019212114359
+    trial_start_center_hysteresis_span_rad: 0.007669903939428206
+    large_signal_static_gain_median: 0.9689645310144301
+    large_signal_steady_error_abs_rad_median: 0.004582508150977167
+    write_to_sustained_motion_ms_median: 65.27400499999999
+    equivalent_first_order_tau_ms_median: 71.00886732714052
+    equivalent_first_order_tau_ms_p10: 60.247315802595665
+    equivalent_first_order_tau_ms_p90: 82.99801207443642
+    settling_1_encoder_ms_median: 330.792215
+    overshoot_percent_max: 0.0
+    response_class: monotonic_nonoscillatory_over_tested_range
+    velocity_saturation_status: not_reached_by_0p20_rad_step
+    observed_velocity_lower_bound_rad_s: 0.9120296735353324
+    peak_velocity_0p02_rad_s_mean: 0.12984002709616457
+    peak_velocity_0p05_rad_s_mean: 0.3502538441729349
+    peak_velocity_0p10_rad_s_mean: 0.5667218916905497
+    peak_velocity_0p15_rad_s_mean: 0.7440841461432939
+    peak_velocity_0p20_rad_s_mean: 0.9038385895905592
+    peak_load_ratio_0p20_mean: 0.24
+    peak_current_a_0p20_mean: 0.039
+    quality_flag: ok
+  leg_right_hip_roll_joint:
+    joint_family: hip_roll
+    side: right
+    servo_id: 7
+    servo_sign: 1
+    reliable_small_step_threshold_rad: 0.02
+    small_signal_residual_error_abs_rad_median: 0.005427182515086409
+    trial_start_center_hysteresis_span_rad: 0.01227184630308513
+    large_signal_static_gain_median: 0.9702428483376679
+    large_signal_steady_error_abs_rad_median: 0.004417449544580773
+    write_to_sustained_motion_ms_median: 63.5652445
+    equivalent_first_order_tau_ms_median: 69.47962651368047
+    equivalent_first_order_tau_ms_p10: 60.41518234832999
+    equivalent_first_order_tau_ms_p90: 79.09514748405559
+    settling_1_encoder_ms_median: 332.354231
+    overshoot_percent_max: 0.0
+    response_class: monotonic_nonoscillatory_over_tested_range
+    velocity_saturation_status: not_reached_by_0p20_rad_step
+    observed_velocity_lower_bound_rad_s: 0.9104097308638315
+    peak_velocity_0p02_rad_s_mean: 0.1281854130965801
+    peak_velocity_0p05_rad_s_mean: 0.34261049149232703
+    peak_velocity_0p10_rad_s_mean: 0.556569987959203
+    peak_velocity_0p15_rad_s_mean: 0.738029962332148
+    peak_velocity_0p20_rad_s_mean: 0.9040483930682879
+    peak_load_ratio_0p20_mean: 0.25
+    peak_current_a_0p20_mean: 0.04875
+    quality_flag: ok
+  leg_right_hip_yaw_joint:
+    joint_family: hip_yaw
+    side: right
+    servo_id: 8
+    servo_sign: 1
+    reliable_small_step_threshold_rad: 0.05
+    small_signal_residual_error_abs_rad_median: 0.005427182515086407
+    trial_start_center_hysteresis_span_rad: 0.012271846303085115
+    large_signal_static_gain_median: 0.970242848337668
+    large_signal_steady_error_abs_rad_median: 0.005495122938636663
+    write_to_sustained_motion_ms_median: 62.876084
+    equivalent_first_order_tau_ms_median: 75.3084480788965
+    equivalent_first_order_tau_ms_p10: 67.33297361863677
+    equivalent_first_order_tau_ms_p90: 82.53020713970092
+    settling_1_encoder_ms_median: 691.561232
+    overshoot_percent_max: 13.514578303537439
+    response_class: underdamped_or_hysteretic_overshoot_observed
+    velocity_saturation_status: not_reached_by_0p20_rad_step
+    observed_velocity_lower_bound_rad_s: 0.8918766798321109
+    peak_velocity_0p02_rad_s_mean: 0.13196393794187988
+    peak_velocity_0p05_rad_s_mean: 0.30715494388243114
+    peak_velocity_0p10_rad_s_mean: 0.5254822498244924
+    peak_velocity_0p15_rad_s_mean: 0.7200175606553139
+    peak_velocity_0p20_rad_s_mean: 0.8633272842093787
+    peak_load_ratio_0p20_mean: 0.32
+    peak_current_a_0p20_mean: 0.12025
+    quality_flag: ok
+  leg_right_hip_pitch_joint:
+    joint_family: hip_pitch
+    side: right
+    servo_id: 9
+    servo_sign: 1
+    reliable_small_step_threshold_rad: 0.02
+    small_signal_residual_error_abs_rad_median: 0.001592230545372303
+    trial_start_center_hysteresis_span_rad: 0.006135923151542572
+    large_signal_static_gain_median: 0.9625729443982397
+    large_signal_steady_error_abs_rad_median: 0.0048931911510902495
+    write_to_sustained_motion_ms_median: 67.78885600000001
+    equivalent_first_order_tau_ms_median: 73.69036518620001
+    equivalent_first_order_tau_ms_p10: 53.20968425618965
+    equivalent_first_order_tau_ms_p90: 78.09094403450425
+    settling_1_encoder_ms_median: 424.250406
+    overshoot_percent_max: 15.048559091423176
+    response_class: underdamped_or_hysteretic_overshoot_observed
+    velocity_saturation_status: not_reached_by_0p20_rad_step
+    observed_velocity_lower_bound_rad_s: 0.9121038591166174
+    peak_velocity_0p02_rad_s_mean: 0.14699364806686577
+    peak_velocity_0p05_rad_s_mean: 0.3281470989646674
+    peak_velocity_0p10_rad_s_mean: 0.572014175464848
+    peak_velocity_0p15_rad_s_mean: 0.7518813778305018
+    peak_velocity_0p20_rad_s_mean: 0.9010160816263557
+    peak_load_ratio_0p20_mean: 0.274
+    peak_current_a_0p20_mean: 0.06825
+    quality_flag: small_to_medium_step_overshoot_observed; include cautiously
+  leg_right_knee_pitch_joint:
+    joint_family: knee_pitch
+    side: right
+    servo_id: 10
+    servo_sign: 1
+    reliable_small_step_threshold_rad: 0.02
+    small_signal_residual_error_abs_rad_median: 0.006194172909029294
+    trial_start_center_hysteresis_span_rad: 0.01380582709097078
+    large_signal_static_gain_median: 0.9549030404588121
+    large_signal_steady_error_abs_rad_median: 0.00657279633269256
+    write_to_sustained_motion_ms_median: 64.948665
+    equivalent_first_order_tau_ms_median: 64.83566790096076
+    equivalent_first_order_tau_ms_p10: 61.0385976851731
+    equivalent_first_order_tau_ms_p90: 82.62641487475925
+    settling_1_encoder_ms_median: 299.123657
+    overshoot_percent_max: 0.0
+    response_class: monotonic_nonoscillatory_over_tested_range
+    velocity_saturation_status: not_reached_by_0p20_rad_step
+    observed_velocity_lower_bound_rad_s: 0.9095146627800725
+    peak_velocity_0p02_rad_s_mean: 0.1048669833337526
+    peak_velocity_0p05_rad_s_mean: 0.3213336012953922
+    peak_velocity_0p10_rad_s_mean: 0.5668004815771661
+    peak_velocity_0p15_rad_s_mean: 0.7285791609061356
+    peak_velocity_0p20_rad_s_mean: 0.8999017647606035
+    peak_load_ratio_0p20_mean: 0.272
+    peak_current_a_0p20_mean: 0.065
+    quality_flag: ok
+  leg_right_ankle_pitch_joint:
+    joint_family: ankle_pitch
+    side: right
+    servo_id: 11
+    servo_sign: -1
+    reliable_small_step_threshold_rad: 0.02
+    small_signal_residual_error_abs_rad_median: 0.003126211333257939
+    trial_start_center_hysteresis_span_rad: 0.007669903939428208
+    large_signal_static_gain_median: 0.9638512617214778
+    large_signal_steady_error_abs_rad_median: 0.00549512293863666
+    write_to_sustained_motion_ms_median: 64.3943015
+    equivalent_first_order_tau_ms_median: 68.10058313720711
+    equivalent_first_order_tau_ms_p10: 52.14931586051814
+    equivalent_first_order_tau_ms_p90: 82.70744550851262
+    settling_1_encoder_ms_median: 320.8122955
+    overshoot_percent_max: 0.0
+    response_class: monotonic_nonoscillatory_over_tested_range
+    velocity_saturation_status: not_reached_by_0p20_rad_step
+    observed_velocity_lower_bound_rad_s: 0.901499339254682
+    peak_velocity_0p02_rad_s_mean: 0.15498037426360534
+    peak_velocity_0p05_rad_s_mean: 0.33017642600271396
+    peak_velocity_0p10_rad_s_mean: 0.5664044722668659
+    peak_velocity_0p15_rad_s_mean: 0.7422732660608355
+    peak_velocity_0p20_rad_s_mean: 0.8972155485683265
+    peak_load_ratio_0p20_mean: 0.244
+    peak_current_a_0p20_mean: 0.042249999999999996
+    quality_flag: ok
+  leg_right_ankle_roll_joint:
+    joint_family: ankle_roll
+    side: right
+    servo_id: 12
+    servo_sign: -1
+    reliable_small_step_threshold_rad: 0.02
+    small_signal_residual_error_abs_rad_median: 0.003893201727200769
+    trial_start_center_hysteresis_span_rad: 0.006135923151542565
+    large_signal_static_gain_median: 0.9817477042468103
+    large_signal_steady_error_abs_rad_median: 0.0030485273630915313
+    write_to_sustained_motion_ms_median: 62.5720365
+    equivalent_first_order_tau_ms_median: 69.86317105832676
+    equivalent_first_order_tau_ms_p10: 64.74366410577062
+    equivalent_first_order_tau_ms_p90: 82.77440384382228
+    settling_1_encoder_ms_median: 339.93524249999996
+    overshoot_percent_max: 0.0
+    response_class: monotonic_nonoscillatory_over_tested_range
+    velocity_saturation_status: not_reached_by_0p20_rad_step
+    observed_velocity_lower_bound_rad_s: 0.9338466755926603
+    peak_velocity_0p02_rad_s_mean: 0.1585722448084566
+    peak_velocity_0p05_rad_s_mean: 0.3432934798029378
+    peak_velocity_0p10_rad_s_mean: 0.5502552420952519
+    peak_velocity_0p15_rad_s_mean: 0.7622520219036586
+    peak_velocity_0p20_rad_s_mean: 0.9258548212101252
+    peak_load_ratio_0p20_mean: 0.232
+    peak_current_a_0p20_mean: 0.039
+    quality_flag: ok

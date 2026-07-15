@@ -1,0 +1,588 @@
+--- git status ---
+On branch vapors
+Your branch is up to date with 'origin/vapors'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+  (commit or discard the untracked or modified content in submodules)
+	modified:   scripts/rsl_rl/export_policy.py
+	modified:   source/berkeley_humanoid_lite/berkeley_humanoid_lite/tasks/locomotion/velocity/config/lilgreen_humanoid/__init__.py
+	modified:   source/berkeley_humanoid_lite/berkeley_humanoid_lite/tasks/locomotion/velocity/config/lilgreen_humanoid/agents/rsl_rl_ppo_cfg.py
+	modified:   source/berkeley_humanoid_lite/berkeley_humanoid_lite/tasks/locomotion/velocity/config/lilgreen_humanoid/env_cfg_hardware_st3215_loaded_v145.py
+	modified:   source/berkeley_humanoid_lite/berkeley_humanoid_lite/tasks/locomotion/velocity/mdp/hardware_contract.py
+	modified:   source/berkeley_humanoid_lite/berkeley_humanoid_lite/tasks/locomotion/velocity/mdp/hardware_rewards.py
+	modified:   source/berkeley_humanoid_lite_assets (modified content)
+	modified:   source/berkeley_humanoid_lite_lowlevel (modified content)
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	V1_4_5_STAND_STABILIZATION_GUIDE.md
+	source/berkeley_humanoid_lite/test/test_v1_4_5_stabilized_static.py
+
+no changes added to commit (use "git add" and/or "git commit -a") 
+
+
+--- git diff ---
+diff --git a/scripts/rsl_rl/export_policy.py b/scripts/rsl_rl/export_policy.py
+index 0a29f9c..379e281 100644
+--- a/scripts/rsl_rl/export_policy.py
++++ b/scripts/rsl_rl/export_policy.py
+@@ -308,6 +308,15 @@ def _build_deploy_config(
+             for default, upper, scale in zip(action_defaults, physical_upper, residual_scale)
+         ]
+ 
++        training_stage_for_profile = str(getattr(action_cfg, "actuator_model_stage", ""))
++        if action_contract_version == 4:
++            if "stabilized" in training_stage_for_profile:
++                deployment_contract_profile = "v1_4_5_stabilized_vector_residual"
++            else:
++                deployment_contract_profile = "v1_4_5_athletic_vector_residual"
++        else:
++            deployment_contract_profile = "v1_2_3_scalar_residual"
++
+         action_metadata = {
+             "action_contract_version": action_contract_version,
+             "action_contract_name": action_contract_name,
+@@ -325,7 +334,7 @@ def _build_deploy_config(
+             "deployment_requires_action_contract_transform": True,
+             "deployment_requires_action_contract_v3_transform": action_contract_version == 3,
+             "deployment_requires_action_contract_v4_transform": action_contract_version == 4,
+-            "deployment_contract_profile": "v1_4_5_athletic_vector_residual" if action_contract_version == 4 else "v1_2_3_scalar_residual",
++            "deployment_contract_profile": deployment_contract_profile,
+         }
+         if hasattr(action_cfg, "actuator_model_name"):
+             action_metadata.update({
+diff --git a/source/berkeley_humanoid_lite/berkeley_humanoid_lite/tasks/locomotion/velocity/config/lilgreen_humanoid/__init__.py b/source/berkeley_humanoid_lite/berkeley_humanoid_lite/tasks/locomotion/velocity/config/lilgreen_humanoid/__init__.py
+index 9ce5c49..aa859a7 100644
+--- a/source/berkeley_humanoid_lite/berkeley_humanoid_lite/tasks/locomotion/velocity/config/lilgreen_humanoid/__init__.py
++++ b/source/berkeley_humanoid_lite/berkeley_humanoid_lite/tasks/locomotion/velocity/config/lilgreen_humanoid/__init__.py
+@@ -173,3 +173,28 @@ gym.register(
+     },
+ )
+ 
++
++
++# v1.4.5 Stand stabilization branch. Same contract v4/vector residual family, but
++# a moderated athletic q_default, 0.43-0.44 m stand target, stand-only anti-lean
++# terms, and gentle balance perturbations.
++gym.register(
++    id="Velocity-Lilgreen-Stand-ST3215-Loaded-v5s",
++    entry_point="isaaclab.envs:ManagerBasedRLEnv",
++    disable_env_checker=True,
++    kwargs={
++        "env_cfg_entry_point": env_cfg_hardware_st3215_loaded_v145.LilgreenStandST3215LoadedV145StabilizedEnvCfg,
++        "rsl_rl_cfg_entry_point": agents.rsl_rl_ppo_cfg.LilgreenStandST3215LoadedV145StabilizedPPORunnerCfg,
++    },
++)
++
++# Matching Hardware task for the stabilized v1.4.5 Stand seed.
++gym.register(
++    id="Velocity-Lilgreen-Hardware-ST3215-Loaded-v5s",
++    entry_point="isaaclab.envs:ManagerBasedRLEnv",
++    disable_env_checker=True,
++    kwargs={
++        "env_cfg_entry_point": env_cfg_hardware_st3215_loaded_v145.LilgreenHardwareST3215LoadedV145StabilizedEnvCfg,
++        "rsl_rl_cfg_entry_point": agents.rsl_rl_ppo_cfg.LilgreenHardwareST3215LoadedV145StabilizedPPORunnerCfg,
++    },
++)
+diff --git a/source/berkeley_humanoid_lite/berkeley_humanoid_lite/tasks/locomotion/velocity/config/lilgreen_humanoid/agents/rsl_rl_ppo_cfg.py b/source/berkeley_humanoid_lite/berkeley_humanoid_lite/tasks/locomotion/velocity/config/lilgreen_humanoid/agents/rsl_rl_ppo_cfg.py
+index cb22491..62e0a20 100644
+--- a/source/berkeley_humanoid_lite/berkeley_humanoid_lite/tasks/locomotion/velocity/config/lilgreen_humanoid/agents/rsl_rl_ppo_cfg.py
++++ b/source/berkeley_humanoid_lite/berkeley_humanoid_lite/tasks/locomotion/velocity/config/lilgreen_humanoid/agents/rsl_rl_ppo_cfg.py
+@@ -227,3 +227,27 @@ class LilgreenHardwareST3215LoadedV145PPORunnerCfg(LilgreenHardwareST3215LoadedP
+     experiment_name = "lilgreen_v1_4_5_st3215_athletic"
+     save_interval = 500
+ 
++
++
++@configclass
++class LilgreenStandST3215LoadedV145StabilizedPPORunnerCfg(LilgreenStandST3215LoadedV145PPORunnerCfg):
++    """v1.4.5 stabilized Stand PPO configuration.
++
++    Same contract generation as v5, but a separate experiment root prevents
++    mixing the first deep-athletic Stand-v5 checkpoints with stabilized runs.
++    """
++
++    experiment_name = "lilgreen_v1_4_5_st3215_stabilized"
++    save_interval = 500
++
++
++@configclass
++class LilgreenHardwareST3215LoadedV145StabilizedPPORunnerCfg(LilgreenHardwareST3215LoadedV145PPORunnerCfg):
++    """v1.4.5 stabilized Hardware PPO configuration.
++
++    Resume this from Velocity-Lilgreen-Stand-ST3215-Loaded-v5s, not the first
++    v5 deep-athletic Stand run.
++    """
++
++    experiment_name = "lilgreen_v1_4_5_st3215_stabilized"
++    save_interval = 500
+diff --git a/source/berkeley_humanoid_lite/berkeley_humanoid_lite/tasks/locomotion/velocity/config/lilgreen_humanoid/env_cfg_hardware_st3215_loaded_v145.py b/source/berkeley_humanoid_lite/berkeley_humanoid_lite/tasks/locomotion/velocity/config/lilgreen_humanoid/env_cfg_hardware_st3215_loaded_v145.py
+index 98c6f28..f53d336 100644
+--- a/source/berkeley_humanoid_lite/berkeley_humanoid_lite/tasks/locomotion/velocity/config/lilgreen_humanoid/env_cfg_hardware_st3215_loaded_v145.py
++++ b/source/berkeley_humanoid_lite/berkeley_humanoid_lite/tasks/locomotion/velocity/config/lilgreen_humanoid/env_cfg_hardware_st3215_loaded_v145.py
+@@ -16,6 +16,7 @@ Older v1.4.0-v1.4.4 tasks are left untouched for reproducibility.
+ from __future__ import annotations
+ 
+ from isaaclab.managers import CurriculumTermCfg as CurrTerm
++from isaaclab.managers import EventTermCfg as EventTerm
+ from isaaclab.managers import RewardTermCfg as RewTerm
+ from isaaclab.managers import SceneEntityCfg
+ from isaaclab.utils import configclass
+@@ -26,12 +27,17 @@ from berkeley_humanoid_lite.tasks.locomotion.velocity.mdp.hardware_contract impo
+     HARDWARE_LOWER_LIMIT_RAD,
+     HARDWARE_UPPER_LIMIT_RAD,
+     RESIDUAL_ACTION_SCALE_RAD_V1_4_5_ATHLETIC,
++    RESIDUAL_ACTION_SCALE_RAD_V1_4_5_STABILIZED,
+     ST3215_NO_LOAD_SPEED_RAD_S,
+     ST3215_PEAK_TORQUE_NM,
+     TRAINING_DEFAULT_RAD_V1_4_5_ATHLETIC,
++    TRAINING_DEFAULT_RAD_V1_4_5_STABILIZED,
+     V1_4_5_ATHLETIC_MOVING_BASE_COM_HEIGHT_M,
++    V1_4_5_STABILIZED_MOVING_BASE_COM_HEIGHT_M,
+     V1_4_5_ATHLETIC_STAND_BASE_COM_HEIGHT_M,
++    V1_4_5_STABILIZED_STAND_BASE_COM_HEIGHT_M,
+     athletic_default_joint_pos_dict,
++    athletic_stabilized_default_joint_pos_dict,
+ )
+ from berkeley_humanoid_lite.tasks.locomotion.velocity.mdp.st3215_actuator_model import (
+     DATASET_NAME,
+@@ -86,6 +92,11 @@ def _apply_athletic_default(scene_robot_cfg) -> None:
+     scene_robot_cfg.init_state.joint_pos.update(athletic_default_joint_pos_dict(include_toes=True))
+ 
+ 
++def _apply_stabilized_athletic_default(scene_robot_cfg) -> None:
++    """Patch q_default for the v1.4.5 Stand-stabilized athletic profile."""
++    scene_robot_cfg.init_state.joint_pos.update(athletic_stabilized_default_joint_pos_dict(include_toes=True))
++
++
+ @configclass
+ class V145ST3215LoadedAthleticActionsCfg:
+     """Loaded ST3215 action model with v1.4.5 athletic q_default/vector residual.
+@@ -526,3 +537,261 @@ class LilgreenHardwareST3215LoadedV145EnvCfg(V140ST3215LoadedHardwareAlignedEnvC
+         super().__post_init__()
+         _apply_athletic_default(self.scene.robot)
+         self.events.actuator_gains = None
++
++
++@configclass
++class V145ST3215LoadedAthleticStabilizedActionsCfg(V145ST3215LoadedAthleticActionsCfg):
++    """v1.4.5 stabilized athletic action profile.
++
++    Same contract v4/vector residual idea as v5, but with a moderated q_default
++    applied by the environment. The residual vector is kept large for later gait.
++    """
++
++    joint_pos = mdp.ST3215MeasuredResidualJointPositionActionCfg(
++        asset_name="robot",
++        joint_names=ACTIONABLE_JOINTS_V1_2_3,
++        lower_limits=HARDWARE_LOWER_LIMIT_RAD,
++        upper_limits=HARDWARE_UPPER_LIMIT_RAD,
++        residual_scale_rad=RESIDUAL_ACTION_SCALE_RAD_V1_4_5_STABILIZED,
++        preserve_order=True,
++        actuator_model_name=(
++            f"{DATASET_NAME}:stage_a_athletic_stabilized+{LOADED_DATASET_NAME}:stage_b_loaded_athletic_stabilized"
++        ),
++        actuator_model_stage="stage_b_loaded_v145_stabilized_vector_residual",
++        velocity_amplitude_knots_rad=ST3215_STEP_AMPLITUDE_KNOTS_RAD,
++        velocity_curves_rad_s=_scaled_curves(ST3215_PEAK_VELOCITY_CURVES_RAD_S, 1.06),
++        tau_median_s=_scaled(ST3215_TAU_MEDIAN_S, 0.88),
++        tau_p10_s=_scaled(ST3215_TAU_P10_S, 0.88),
++        tau_p90_s=_scaled(ST3215_TAU_P90_S, 0.88),
++        static_gain=ST3215_STATIC_GAIN_MEDIAN,
++        small_signal_error_floor_rad=ST3215_SMALL_SIGNAL_ERROR_FLOOR_RAD,
++        center_hysteresis_span_rad=ST3215_CENTER_HYSTERESIS_SPAN_RAD,
++        bus_phase_delay_s_range=ST3215_BUS_PHASE_WAIT_RANGE_S,
++        response_delay_s_range=ST3215_FIRST_ENCODER_DELAY_RANGE_S,
++        response_delay_s_nominal=ST3215_FIRST_ENCODER_DELAY_MEDIAN_S,
++        response_delay_scale=0.72,
++        velocity_scale_range=(1.00, 1.10),
++        randomize_tau=True,
++        randomize_velocity_scale=True,
++        randomize_response_delay=True,
++        randomize_bus_phase=True,
++        loaded_envelope_enabled=True,
++        loaded_dataset_name=LOADED_DATASET_NAME,
++        loaded_envelope_combination_rule=LOADED_ENVELOPE_COMBINATION_RULE,
++        loaded_crouch_direction_sign=LOADED_CROUCH_DIRECTION_SIGN,
++        loaded_crouch_low_demand_gain=LOADED_CROUCH_LOW_DEMAND_GAIN,
++        loaded_crouch_vmax_rad_s=LOADED_CROUCH_VMAX_RAD_S,
++        loaded_return_low_demand_gain=LOADED_RETURN_LOW_DEMAND_GAIN,
++        loaded_return_vmax_rad_s=LOADED_RETURN_VMAX_RAD_S,
++        loaded_direction_conditioning_weight=LOADED_DIRECTION_CONDITIONING_WEIGHT,
++        loaded_return_tau_scale=LOADED_RETURN_TAU_SCALE,
++        loaded_velocity_scale_range=(1.00, 1.10),
++        randomize_loaded_velocity_scale=True,
++    )
++
++
++@configclass
++class ST3215LoadedV145StabilizedStandEventsCfg(ST3215StandEventsCfg):
++    """Stand-v5 stabilization events with gentle external balance perturbations.
++
++    The interval push is deliberately small. It encourages both legs to participate
++    in recovery without becoming a Hardware locomotion disturbance curriculum.
++    """
++
++    push_robot = EventTerm(
++        func=mdp.push_by_setting_velocity,
++        params={"velocity_range": {"x": (-0.055, 0.055), "y": (-0.055, 0.055)}},
++        mode="interval",
++        interval_range_s=(5.0, 8.0),
++    )
++
++
++@configclass
++class HardwareV145StabilizedStandRewardsCfg(HardwareV145AthleticStandRewardsCfg):
++    """Stabilized Stand-v5 rewards.
++
++    Targets a moderate 0.43-0.44 m athletic stance, reduces the incentive for a
++    deep right-leg brace, and avoids knee-symmetry shaping that might be harmful
++    for later gait transfer.
++    """
++
++    stand_base_height = RewTerm(
++        func=mdp.standing_base_height_exp,
++        params={
++            "command_name": "base_velocity",
++            "desired_height": V1_4_5_STABILIZED_STAND_BASE_COM_HEIGHT_M,
++            "std": 0.075,
++        },
++        weight=0.95,
++    )
++    stand_default_pose = RewTerm(
++        func=mdp.standing_default_joint_pose_l2,
++        params={
++            "command_name": "base_velocity",
++            "command_threshold": 0.05,
++            "asset_cfg": SceneEntityCfg(
++                "robot", joint_names=ACTIONABLE_JOINTS_V1_2_3, preserve_order=True
++            ),
++        },
++        weight=-0.90,
++    )
++    raw_action_excess_l2 = RewTerm(func=mdp.raw_action_excess_l2, params={"action_name": "joint_pos"}, weight=-0.140)
++    soft_torque_utilization = RewTerm(
++        func=mdp.soft_torque_utilization_l2,
++        params={
++            "torque_limit_nm": ST3215_PEAK_TORQUE_NM,
++            "soft_ratio": 0.68,
++            "asset_cfg": SceneEntityCfg(
++                "robot", joint_names=ACTIONABLE_JOINTS_V1_2_3, preserve_order=True
++            ),
++        },
++        weight=-0.026,
++    )
++    stand_sagittal_soft_torque = RewTerm(
++        func=mdp.standing_soft_torque_utilization_l2,
++        params={
++            "command_name": "base_velocity",
++            "torque_limit_nm": ST3215_PEAK_TORQUE_NM,
++            "soft_ratio": 0.62,
++            "command_threshold": 0.05,
++            "asset_cfg": SceneEntityCfg(
++                "robot",
++                joint_names=[".*_hip_pitch_joint", ".*_knee_pitch_joint", ".*_ankle_pitch_joint"],
++                preserve_order=True,
++            ),
++        },
++        weight=-0.045,
++    )
++    stand_contact_force_balance = RewTerm(
++        func=mdp.standing_contact_force_balance_l2,
++        params={
++            "command_name": "base_velocity",
++            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=FEET_BODY_PATTERN),
++            "command_threshold": 0.05,
++            "force_threshold": 1.0,
++        },
++        weight=-0.35,
++    )
++    stand_com_over_feet = RewTerm(
++        func=mdp.standing_com_over_feet_l2,
++        params={
++            "command_name": "base_velocity",
++            "asset_cfg": SceneEntityCfg("robot", body_names=FEET_BODY_PATTERN),
++            "command_threshold": 0.05,
++        },
++        weight=-1.10,
++    )
++    stand_both_feet_contact = RewTerm(
++        func=mdp.standing_both_feet_contact,
++        params={
++            "command_name": "base_velocity",
++            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=FEET_BODY_PATTERN),
++            "force_threshold": 1.0,
++        },
++        weight=0.80,
++    )
++
++
++@configclass
++class HardwareV145StabilizedGroundedStepRewardsCfg(HardwareV145GroundedStepRewardsCfg):
++    """Hardware-v5s rewards matching the stabilized standing profile."""
++
++    moving_relaxed_base_height = RewTerm(
++        func=mdp.moving_base_height_exp,
++        params={
++            "command_name": "base_velocity",
++            "desired_height": V1_4_5_STABILIZED_MOVING_BASE_COM_HEIGHT_M,
++            "std": 0.100,
++            "command_threshold": 0.12,
++        },
++        weight=0.45,
++    )
++    stand_base_height = RewTerm(
++        func=mdp.standing_base_height_exp,
++        params={
++            "command_name": "base_velocity",
++            "desired_height": V1_4_5_STABILIZED_STAND_BASE_COM_HEIGHT_M,
++            "std": 0.080,
++        },
++        weight=0.60,
++    )
++
++
++@configclass
++class ST3215LoadedV145StabilizedStandCurriculumsCfg(ST3215LoadedV145StandCurriculumsCfg):
++    policy_diagnostics = CurrTerm(
++        func=mdp.PolicyDiagnostics,
++        params={
++            "command_name": "base_velocity",
++            "action_name": "joint_pos",
++            "asset_cfg": SceneEntityCfg(
++                "robot", joint_names=ACTIONABLE_JOINTS_V1_2_3, preserve_order=True
++            ),
++            "foot_asset_cfg": SceneEntityCfg("robot", body_names=FEET_BODY_PATTERN),
++            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=FEET_BODY_PATTERN),
++            "joint_velocity_limit_rad_s": ST3215_NO_LOAD_SPEED_RAD_S,
++            "torque_limit_nm": ST3215_PEAK_TORQUE_NM,
++            "torque_soft_ratio": 0.68,
++            "desired_base_com_height_m": V1_4_5_STABILIZED_STAND_BASE_COM_HEIGHT_M,
++            "update_interval_steps": 25,
++            "standing_command_threshold": 0.05,
++        },
++    )
++
++
++@configclass
++class ST3215LoadedV145StabilizedHardwareCurriculumsCfg(ST3215LoadedV145HardwareCurriculumsCfg):
++    policy_diagnostics = CurrTerm(
++        func=mdp.PolicyDiagnostics,
++        params={
++            "command_name": "base_velocity",
++            "action_name": "joint_pos",
++            "asset_cfg": SceneEntityCfg(
++                "robot", joint_names=ACTIONABLE_JOINTS_V1_2_3, preserve_order=True
++            ),
++            "foot_asset_cfg": SceneEntityCfg("robot", body_names=FEET_BODY_PATTERN),
++            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=FEET_BODY_PATTERN),
++            "joint_velocity_limit_rad_s": ST3215_NO_LOAD_SPEED_RAD_S,
++            "torque_limit_nm": ST3215_PEAK_TORQUE_NM,
++            "torque_soft_ratio": 0.70,
++            "desired_base_com_height_m": V1_4_5_STABILIZED_STAND_BASE_COM_HEIGHT_M,
++            "update_interval_steps": 25,
++            "standing_command_threshold": 0.05,
++        },
++    )
++
++
++@configclass
++class LilgreenStandST3215LoadedV145StabilizedEnvCfg(V140ST3215LoadedHardwareAlignedEnvCfg):
++    """Stabilized v1.4.5 Stand task: moderate athletic stance plus anti-lean shaping."""
++
++    commands: StandCommandsCfg = StandCommandsCfg()
++    observations: StandObservationsCfg = StandObservationsCfg()
++    actions: V145ST3215LoadedAthleticStabilizedActionsCfg = V145ST3215LoadedAthleticStabilizedActionsCfg()
++    rewards: HardwareV145StabilizedStandRewardsCfg = HardwareV145StabilizedStandRewardsCfg()
++    terminations: V123TerminationsCfg = V123TerminationsCfg()
++    events: ST3215LoadedV145StabilizedStandEventsCfg = ST3215LoadedV145StabilizedStandEventsCfg()
++    curriculum: ST3215LoadedV145StabilizedStandCurriculumsCfg = ST3215LoadedV145StabilizedStandCurriculumsCfg()
++
++    def __post_init__(self):
++        super().__post_init__()
++        _apply_stabilized_athletic_default(self.scene.robot)
++        self.events.actuator_gains = None
++
++
++@configclass
++class LilgreenHardwareST3215LoadedV145StabilizedEnvCfg(V140ST3215LoadedHardwareAlignedEnvCfg):
++    """Hardware task matching the stabilized v1.4.5 default/profile."""
++
++    commands: HardwareCommandsCfg = HardwareCommandsCfg()
++    observations: HardwareObservationsCfg = HardwareObservationsCfg()
++    actions: V145ST3215LoadedAthleticStabilizedActionsCfg = V145ST3215LoadedAthleticStabilizedActionsCfg()
++    rewards: HardwareV145StabilizedGroundedStepRewardsCfg = HardwareV145StabilizedGroundedStepRewardsCfg()
++    terminations: V123TerminationsCfg = V123TerminationsCfg()
++    events: ST3215HardwareEventsCfg = ST3215HardwareEventsCfg()
++    curriculum: ST3215LoadedV145StabilizedHardwareCurriculumsCfg = ST3215LoadedV145StabilizedHardwareCurriculumsCfg()
++
++    def __post_init__(self):
++        super().__post_init__()
++        _apply_stabilized_athletic_default(self.scene.robot)
++        self.events.actuator_gains = None
+diff --git a/source/berkeley_humanoid_lite/berkeley_humanoid_lite/tasks/locomotion/velocity/mdp/hardware_contract.py b/source/berkeley_humanoid_lite/berkeley_humanoid_lite/tasks/locomotion/velocity/mdp/hardware_contract.py
+index 64f7bc6..0c62356 100644
+--- a/source/berkeley_humanoid_lite/berkeley_humanoid_lite/tasks/locomotion/velocity/mdp/hardware_contract.py
++++ b/source/berkeley_humanoid_lite/berkeley_humanoid_lite/tasks/locomotion/velocity/mdp/hardware_contract.py
+@@ -241,5 +241,69 @@ def athletic_default_joint_pos_dict(include_toes: bool = True) -> dict[str, floa
+     return values
+ 
+ 
++
++# v1.4.5 Stand-stabilized athletic profile. This keeps contract v4/vector residual,
++# but backs the default posture away from the too-deep v1.4.5 crouch that loaded the
++# right knee/ankle in the first Stand-v5 run. The intent is a moderate athletic
++# stance around 0.43-0.44 m COM height while preserving the larger sagittal motion
++# authority needed later for walking.
++TRAINING_DEFAULT_RAD_V1_4_5_STABILIZED = [
++    0.0,
++    0.0,
++    -0.24,
++    0.62,
++    -0.22,
++    0.0,
++    0.0,
++    0.0,
++    -0.24,
++    0.62,
++    -0.22,
++    0.0,
++]
++
++# Use the same vector residual authority as the athletic v5 profile: the stabilizer
++# changes the center/default and rewards, not the amount of hip/knee/ankle pitch
++# authority available to the policy.
++RESIDUAL_ACTION_SCALE_RAD_V1_4_5_STABILIZED = RESIDUAL_ACTION_SCALE_RAD_V1_4_5_ATHLETIC
++
++# Desired height targets for the stabilized profile. 0.435 m is deliberately in the
++# visually identified sweet spot between the old tall stance and the first v1.4.5
++# deep crouch. The moving target remains lower to allow knee bend during gait.
++V1_4_5_STABILIZED_STAND_BASE_COM_HEIGHT_M = 0.435
++V1_4_5_STABILIZED_MOVING_BASE_COM_HEIGHT_M = 0.415
++
++
++def validate_v1_4_5_stabilized_contract() -> None:
++    """Validate the v1.4.5 stabilized q_default and vector residual profile."""
++    n = len(ACTIONABLE_JOINTS_V1_2_3)
++    if len(TRAINING_DEFAULT_RAD_V1_4_5_STABILIZED) != n:
++        raise ValueError("v1.4.5 stabilized q_default length mismatch")
++    if len(RESIDUAL_ACTION_SCALE_RAD_V1_4_5_STABILIZED) != n:
++        raise ValueError("v1.4.5 stabilized residual scale length mismatch")
++    for name, default, scale, lower, upper in zip(
++        ACTIONABLE_JOINTS_V1_2_3,
++        TRAINING_DEFAULT_RAD_V1_4_5_STABILIZED,
++        RESIDUAL_ACTION_SCALE_RAD_V1_4_5_STABILIZED,
++        HARDWARE_LOWER_LIMIT_RAD,
++        HARDWARE_UPPER_LIMIT_RAD,
++    ):
++        if scale <= 0.0:
++            raise ValueError(f"v1.4.5 stabilized residual scale for {name} must be positive")
++        if not lower <= default <= upper:
++            raise ValueError(
++                f"v1.4.5 stabilized default for {name} ({default}) is outside [{lower}, {upper}]"
++            )
++
++
++def athletic_stabilized_default_joint_pos_dict(include_toes: bool = True) -> dict[str, float]:
++    """Return v1.4.5 stabilized athletic q_default keyed by joint name."""
++    values = dict(zip(ACTIONABLE_JOINTS_V1_2_3, TRAINING_DEFAULT_RAD_V1_4_5_STABILIZED))
++    if include_toes:
++        values["leg_left_toe_pitch_joint"] = 0.0
++        values["leg_right_toe_pitch_joint"] = 0.0
++    return values
++
+ validate_contract()
+ validate_v1_4_5_athletic_contract()
++validate_v1_4_5_stabilized_contract()
+diff --git a/source/berkeley_humanoid_lite/berkeley_humanoid_lite/tasks/locomotion/velocity/mdp/hardware_rewards.py b/source/berkeley_humanoid_lite/berkeley_humanoid_lite/tasks/locomotion/velocity/mdp/hardware_rewards.py
+index 4fe477c..c97107c 100644
+--- a/source/berkeley_humanoid_lite/berkeley_humanoid_lite/tasks/locomotion/velocity/mdp/hardware_rewards.py
++++ b/source/berkeley_humanoid_lite/berkeley_humanoid_lite/tasks/locomotion/velocity/mdp/hardware_rewards.py
+@@ -164,3 +164,73 @@ def standing_feet_slide(
+     body_vel_xy = asset.data.body_lin_vel_w[:, asset_cfg.body_ids, :2]
+     slip = torch.sum(torch.linalg.vector_norm(body_vel_xy, dim=-1) * contacts, dim=1)
+     return slip * _standing_mask(env, command_name, command_threshold)
++
++
++
++def standing_soft_torque_utilization_l2(
++    env: ManagerBasedRLEnv,
++    command_name: str,
++    torque_limit_nm: float,
++    soft_ratio: float = 0.70,
++    command_threshold: float = 0.05,
++    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
++) -> torch.Tensor:
++    """Standing-only soft torque utilization penalty.
++
++    This is useful for Stand checkpoints where we want bent knees but do not want
++    a static crouch that sits continuously near the ST3215 torque envelope.
++    """
++    if torque_limit_nm <= 0.0:
++        raise ValueError("torque_limit_nm must be positive")
++    if not 0.0 <= soft_ratio < 1.0:
++        raise ValueError("soft_ratio must be in [0, 1)")
++    asset: Articulation = env.scene[asset_cfg.name]
++    torque = torch.abs(asset.data.applied_torque[:, asset_cfg.joint_ids])
++    utilization = torque / torque_limit_nm
++    excess = torch.relu(utilization - soft_ratio)
++    return torch.sum(torch.square(excess), dim=1) * _standing_mask(env, command_name, command_threshold)
++
++
++def standing_contact_force_balance_l2(
++    env: ManagerBasedRLEnv,
++    command_name: str,
++    sensor_cfg: SceneEntityCfg,
++    command_threshold: float = 0.05,
++    force_threshold: float = 1.0,
++    eps: float = 1.0e-6,
++) -> torch.Tensor:
++    """Penalize left/right support-force imbalance under standing commands.
++
++    This is a stand-only anti-lean term, not a knee-symmetry term. It discourages
++    the first v1.4.5 failure mode where the policy stood by loading one leg hard.
++    """
++    sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
++    forces = sensor.data.net_forces_w_history[:, :, sensor_cfg.body_ids, :].norm(dim=-1).max(dim=1)[0]
++    if forces.shape[1] != 2:
++        # Keep the term safe if a future foot pattern matches more bodies.
++        left = torch.sum(forces[:, 0::2], dim=1)
++        right = torch.sum(forces[:, 1::2], dim=1)
++    else:
++        left, right = forces[:, 0], forces[:, 1]
++    total = left + right
++    both_loaded = (left > force_threshold) & (right > force_threshold)
++    normalized_diff = (left - right) / (total + eps)
++    return torch.square(normalized_diff) * both_loaded * _standing_mask(env, command_name, command_threshold)
++
++
++def standing_com_over_feet_l2(
++    env: ManagerBasedRLEnv,
++    command_name: str,
++    asset_cfg: SceneEntityCfg,
++    command_threshold: float = 0.05,
++) -> torch.Tensor:
++    """Penalize standing COM displacement from the midpoint of the two feet.
++
++    This keeps the Stand seed from leaning onto one leg without teaching gait-time
++    knee symmetry. Use only on standing tasks.
++    """
++    asset: Articulation = env.scene[asset_cfg.name]
++    foot_xy = asset.data.body_pos_w[:, asset_cfg.body_ids, :2]
++    midpoint_xy = torch.mean(foot_xy, dim=1)
++    com_xy = asset.data.root_com_pos_w[:, :2]
++    return torch.sum(torch.square(com_xy - midpoint_xy), dim=1) * _standing_mask(env, command_name, command_threshold)
+diff --git a/source/berkeley_humanoid_lite_assets b/source/berkeley_humanoid_lite_assets
+--- a/source/berkeley_humanoid_lite_assets
++++ b/source/berkeley_humanoid_lite_assets
+@@ -1 +1 @@
+-Subproject commit a2d497f61b29ebd0c18b8d0194e69df187a9d350
++Subproject commit a2d497f61b29ebd0c18b8d0194e69df187a9d350-dirty
+diff --git a/source/berkeley_humanoid_lite_lowlevel b/source/berkeley_humanoid_lite_lowlevel
+--- a/source/berkeley_humanoid_lite_lowlevel
++++ b/source/berkeley_humanoid_lite_lowlevel
+@@ -1 +1 @@
+-Subproject commit d400f8eb66a9158512a84387201026b17d9898da
++Subproject commit d400f8eb66a9158512a84387201026b17d9898da-dirty
