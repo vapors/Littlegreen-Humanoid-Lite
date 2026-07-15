@@ -1,0 +1,103 @@
+<mujoco model="lilgreen_urdf_2025">
+    <compiler angle="radian" />
+    <asset>
+        <mesh name="leg_left_hip_roll" file="meshes/leg_left_hip_roll.stl" scale="0.001 0.001 0.001" />
+        <mesh name="leg_left_hip_yaw" file="meshes/leg_left_hip_yaw.stl" scale="0.001 0.001 0.001" />
+        <mesh name="leg_left_hip_pitch" file="meshes/leg_left_hip_pitch.stl" scale="0.001 0.001 0.001" />
+        <mesh name="leg_left_knee_pitch" file="meshes/leg_left_knee_pitch.stl" scale="0.001 0.001 0.001" />
+        <mesh name="leg_left_ankle_pitch" file="meshes/leg_left_ankle_pitch.stl" scale="0.001 0.001 0.001" />
+        <mesh name="leg_left_ankle_roll" file="meshes/leg_left_ankle_roll.stl" scale="0.001 0.001 0.001" />
+        <mesh name="leg_left_toe_pitch" file="meshes/leg_left_toe_pitch.stl" scale="0.001 0.001 0.001" />
+        <mesh name="leg_right_hip_roll" file="meshes/leg_right_hip_roll.stl" scale="0.001 0.001 0.001" />
+        <mesh name="leg_right_hip_yaw" file="meshes/leg_right_hip_yaw.stl" scale="0.001 0.001 0.001" />
+        <mesh name="leg_right_hip_pitch" file="meshes/leg_right_hip_pitch.stl" scale="0.001 0.001 0.001" />
+        <mesh name="leg_right_knee_pitch" file="meshes/leg_right_knee_pitch.stl" scale="0.001 0.001 0.001" />
+        <mesh name="leg_right_ankle_pitch" file="meshes/leg_right_ankle_pitch.stl" scale="0.001 0.001 0.001" />
+        <mesh name="leg_right_ankle_roll" file="meshes/leg_right_ankle_roll.stl" scale="0.001 0.001 0.001" />
+        <mesh name="leg_right_toe_pitch" file="meshes/leg_right_toe_pitch.stl" scale="0.001 0.001 0.001" />
+        <mesh name="base_link" file="meshes/base_link.stl" scale="0.001 0.001 0.001" />
+        <mesh name="IMU" file="meshes/IMU.stl" scale="0.001 0.001 0.001" />
+    </asset>
+    <worldbody>
+        <light directional="true" pos="-0.5 0.5 3" dir="0 0 -1" />
+        <geom pos="0 0 0" size="1 1 1" type="plane" rgba="1 0.83 0.61 0.5" />
+        <body name="base_link" pos="0.040309900581241766 -0.016594084152055592 0.4169388309006876" euler="-1.5707963267948963 -0.26179938779915374 1.149385969128149e-16">
+            <geom name="base_link_geom" type="mesh" mesh="base_link" pos="0 0 0" euler="0 0 0" />
+            <inertial mass="2.8792991041177807" pos="-0.03765868857950932 -0.07389451183145564 0.02955298279552922" fullinertia="0.009366749557186443 0.0042877476463523525 0.00946850589048177 -0.0007386777185639633 7.27795157012808e-05 -0.00017963496316084039" />
+            <body name="leg_left_hip_roll" pos="-0.015921417823471794 -0.053526458199433975 0.08345170299909445" euler="1.4020963555373356 0.044958599617583896 -1.8287938019876295">
+                <joint name="base_link_leg_left_hip_roll_joint" type="hinge" axis="-0.1736481776669238 -2.8074764735208614e-14 -0.9848077530122081" pos="0.019411471619884376 -0.02176210183200696 -0.02563653230341094" />
+                <geom name="leg_left_hip_roll_geom" type="mesh" mesh="leg_left_hip_roll" pos="0 0 0" euler="0 0 0" />
+                <inertial mass="0.3807019177780353" pos="0.0004589390420128578 -0.02261860660376533 -0.0209664685765215" fullinertia="0.00033893410522178624 0.00035386807363668423 0.00018458845717217353 3.980070952744518e-05 6.86156956863731e-05 -7.400610491268867e-05" />
+                <body name="leg_left_hip_yaw" pos="-0.03895096552778004 -0.0033541434815032678 -0.038717280452832625" euler="2.8023802757219887 -0.14230117848658466 1.4243955179178887">
+                    <joint name="leg_left_hip_roll_leg_left_hip_yaw_joint" type="hinge" axis="-0.9398131806792624 -0.09088034266603659 -0.3293811602663786" pos="0.03676571884739728 -0.003962447077278146 -0.030046770930205614" />
+                    <geom name="leg_left_hip_yaw_geom" type="mesh" mesh="leg_left_hip_yaw" pos="0 0 0" euler="0 0 0" />
+                    <inertial mass="0.33291418473679235" pos="0.0071519104767469015 -0.0048197034017870245 -0.00801263093406393" fullinertia="0.00010963937482653721 0.0001786300419983171 0.00013668996099859424 -1.299507285685765e-05 1.3466039364351266e-05 1.1598203321270066e-05" />
+                    <body name="leg_left_hip_pitch" pos="-0.2107826562516604 -0.05058961585102884 0.37245671318866747" euler="-0.02154697899364713 -0.3544857952827363 0.2580773194925355">
+                        <joint name="leg_left_hip_yaw_leg_left_hip_pitch_joint" type="hinge" axis="0.26239326654178624 0.9647491120688804 0.02020560270913365" pos="0.051371615574704065 0.019492880077468744 -0.4130408970632061" />
+                        <geom name="leg_left_hip_pitch_geom" type="mesh" mesh="leg_left_hip_pitch" pos="0 0 0" euler="0 0 0" />
+                        <inertial mass="2.5586264255364757" pos="0.04919944332989568 0.03172114418001775 -0.3448101168192959" fullinertia="0.003523705514749847 0.0037149984746598233 0.0013940467793523868 -2.542881916075783e-05 -0.00021619348143814377 3.8209122078029515e-05" />
+                        <body name="leg_left_knee_pitch" pos="-0.007203233103054494 -0.00021854339229704145 0.001994394021918075" euler="0.020940966918480325 5.787037515858658e-15 -0.1782354904317291">
+                            <joint name="leg_left_hip_pitch_leg_left_knee_pitch_joint" type="hinge" axis="3.405371246939791e-07 0.9999996411463404 2.456039678976757e-07" pos="0.055942609783903065 0.02006022865879103 -0.2720894611928033" />
+                            <geom name="leg_left_knee_pitch_geom" type="mesh" mesh="leg_left_knee_pitch" pos="0 0 0" euler="0 0 0" />
+                            <inertial mass="0.2823179687491023" pos="0.057950143008089976 0.04168090977519618 -0.1747540714378571" fullinertia="0.001136993450576003 0.001153684769356533 8.623749352238441e-05 -1.1353607065963228e-06 -5.996747975921448e-05 -3.193280568368747e-05" />
+                            <body name="leg_left_ankle_pitch" pos="0.010692005380269985 -0.013537129089899142 -0.0011714072433970768" euler="-0.020238039388117236 -4.233020704791357e-11 0.17851314964505952">
+                                <joint name="leg_left_knee_pitch_leg_left_ankle_pitch_joint" type="hinge" axis="0.25881932928605494 0.9659260311643153 -2.66534055954476e-07" pos="0.05900941668928826 0.028921779887913005 -0.08027900859830071" />
+                                <geom name="leg_left_ankle_pitch_geom" type="mesh" mesh="leg_left_ankle_pitch" pos="0 0 0" euler="0 0 0" />
+                                <inertial mass="0.11561362509497823" pos="0.05575578305980872 0.04992597978179207 -0.04334307329419745" fullinertia="4.976189060592942e-05 4.528657195874123e-05 3.4805391385926574e-05 -8.469245656481909e-07 8.487821375354322e-07 2.859985839015472e-06" />
+                                <body name="leg_left_ankle_roll" pos="-0.0004675273538664193 -0.0002695194238283705 -0.0001235091123687132" euler="0.00891298465987352 4.657732532997721e-16 0.0013972003350839729">
+                                    <joint name="leg_left_ankle_pitch_leg_left_ankle_roll_joint" type="hinge" axis="0.9659263484890159 -0.25881877317086693 -5.847554598696625e-08" pos="0.0342006588900956 0.045972627809439906 -0.031135655432365055" />
+                                    <geom name="leg_left_ankle_roll_geom" type="mesh" mesh="leg_left_ankle_roll" pos="0 0 0" euler="0 0 0" />
+                                    <inertial mass="0.15237392056454174" pos="0.031550264125235525 0.056058671040634826 -0.011357340804697892" fullinertia="6.82604179807571e-05 0.0002231586535975349 0.00026280284118912955 4.5606080043599167e-05 4.4909654466981975e-06 -6.383351969716426e-06" />
+                                    <body name="leg_left_toe_pitch" pos="0.00018117333157137595 0.0006761480784020258 1.7108536809473662e-15" euler="-2.490022077417112e-14 5.221517662690195e-16 -1.7470291706345191e-15">
+                                        <joint name="leg_left_ankle_roll_leg_left_toe_pitch_joint" type="hinge" axis="-0.2588193741506354 -0.9659252980174059 5.048137626945115e-07" pos="-0.028866913835455137 0.06930430392450652 -0.015325689785456348" />
+                                        <geom name="leg_left_toe_pitch_geom" type="mesh" mesh="leg_left_toe_pitch" pos="0 0 0" euler="0 0 0" />
+                                        <inertial mass="0.030347897482325643" pos="-0.044009029327274546 0.06923741044202503 -0.006644828799731139" fullinertia="8.322270717965043e-06 4.375858788717152e-06 1.0964675787846563e-05 -4.254657061268546e-07 2.8711167367628446e-07 -5.473055017151413e-07" />
+                                    </body>
+                                </body>
+                            </body>
+                        </body>
+                    </body>
+                </body>
+            </body>
+            <body name="leg_right_hip_roll" pos="-0.046924473884280817 -0.053526458199433906 -0.03225327669260787" euler="-1.4020963555373511 0.0449585996176396 -1.3127988516021645">
+                <joint name="base_link_leg_right_hip_roll_joint" type="hinge" axis="0.17364817766692384 2.806956056478065e-14 -0.9848077530122077" pos="0.01941147137342204 -0.02176210164639696 0.025636532259952917" />
+                <geom name="leg_right_hip_roll_geom" type="mesh" mesh="leg_right_hip_roll" pos="0 0 0" euler="0 0 0" />
+                <inertial mass="0.3807019080396239" pos="0.0004589384983464213 -0.02261860392317244 0.02096646884633585" fullinertia="0.0003389341011020629 0.00035386805655577885 0.00018458843903059474 3.9800685305701386e-05 -6.861569497548588e-05 7.400610637538893e-05" />
+                <body name="leg_right_hip_yaw" pos="-0.038950965527780566 -0.0033541434815032986 0.03871728045283227" euler="-2.8023802757219904 0.14230117848657645 1.4243955179178645">
+                    <joint name="leg_right_hip_roll_leg_right_hip_yaw_joint" type="hinge" axis="0.9398131806792608 0.09088034266605417 -0.3293811602663778" pos="0.03676571865082668 -0.0039624468449257775 0.030046770996955435" />
+                    <geom name="leg_right_hip_yaw_geom" type="mesh" mesh="leg_right_hip_yaw" pos="0 0 0" euler="0 0 0" />
+                    <inertial mass="0.3329141813849623" pos="0.007151910688176806 -0.004819703292191818 0.008012631000082527" fullinertia="0.0001096393734218638 0.0001786300392341752 0.00013668995771487405 -1.2995071897491965e-05 -1.3466038863288899e-05 -1.159820328760022e-05" />
+                    <body name="leg_right_hip_pitch" pos="-0.2107826562516599 -0.05058961585102899 -0.37245671318866774" euler="0.02154697899364676 0.35448579528273527 0.25807731949253554">
+                        <joint name="leg_right_hip_yaw_leg_right_hip_pitch_joint" type="hinge" axis="-0.2623932665417697 -0.9647491120688845 0.02020560270913354" pos="0.051371615435398435 0.01949288035598196 0.4130408970528656" />
+                        <geom name="leg_right_hip_pitch_geom" type="mesh" mesh="leg_right_hip_pitch" pos="0 0 0" euler="0 0 0" />
+                        <inertial mass="2.558626424804792" pos="0.04919944332808778 0.03172114417660598 0.34481011682801777" fullinertia="0.003523705514669722 0.0037149984745529865 0.0013940467791617981 -2.5428818977888715e-05 0.00021619348131458413 -3.8209122759344234e-05" />
+                        <body name="leg_right_knee_pitch" pos="-0.007203233103054494 -0.00021854339229709474 -0.0019943940219186254" euler="-0.020940966918480304 -5.722852747247516e-15 -0.1782354904317293">
+                            <joint name="leg_right_hip_pitch_leg_right_knee_pitch_joint" type="hinge" axis="-3.405371070689582e-07 -0.9999996411463405 2.4560396764440606e-07" pos="0.0559426095973981 0.020060228908347192 0.2720894611882974" />
+                            <geom name="leg_right_knee_pitch_geom" type="mesh" mesh="leg_right_knee_pitch" pos="0 0 0" euler="0 0 0" />
+                            <inertial mass="0.2823180672271054" pos="0.057950142228655445 0.04168090791018378 0.17475410362098248" fullinertia="0.0011369943855038267 0.0011536856912205524 8.623751781739967e-05 -1.135361656855069e-06 5.996750171161377e-05 3.193286354316664e-05" />
+                            <body name="leg_right_ankle_pitch" pos="0.010692005380270056 -0.013537129089899187 0.0011714072433970553" euler="0.020238039388117284 4.233022092570138e-11 0.1785131496450593">
+                                <joint name="leg_right_knee_pitch_leg_right_ankle_pitch_joint" type="hinge" axis="-0.2588193292860376 -0.9659260311643205 -2.6653405607590663e-07" pos="0.059009416550034374 0.02892178016648075 0.0802790085887455" />
+                                <geom name="leg_right_ankle_pitch_geom" type="mesh" mesh="leg_right_ankle_pitch" pos="0 0 0" euler="0 0 0" />
+                                <inertial mass="0.11561362457503904" pos="0.05575579069901836 0.04992597865585887 0.043343068254799" fullinertia="4.976181838045671e-05 4.528651267259722e-05 3.4805401942381664e-05 -8.46938350839325e-07 -8.488601526379858e-07 -2.859970852442619e-06" />
+                                <body name="leg_right_ankle_roll" pos="0.0014650456569394966 -0.0007844373723255327 0.0001280986896794009" euler="-0.008912984659873687 -3.8163916471489746e-16 0.001397200335083208">
+                                    <joint name="leg_right_ankle_pitch_leg_right_ankle_roll_joint" type="hinge" axis="-0.9659263484890207 0.25881877317084906 -5.8475545046746125e-08" pos="0.032268807098652735 0.04649026617848076 0.031135655425293004" />
+                                    <geom name="leg_right_ankle_roll_geom" type="mesh" mesh="leg_right_ankle_roll" pos="0 0 0" euler="0 0 0" />
+                                    <inertial mass="0.15237292646979797" pos="0.031550355292048415 0.05605855995753034 0.011357337950485803" fullinertia="6.826009259370633e-05 0.00022315841771306376 0.0002628023533443964 4.560584630846836e-05 -4.490978346663637e-06 6.383360831259482e-06" />
+                                    <body name="leg_right_toe_pitch" pos="0.00018117333157138482 0.0006761480784019991 -1.7222334669497742e-15" euler="2.5004304182729723e-14 -5.394990010287875e-16 -1.759768546161223e-15">
+                                        <joint name="leg_right_ankle_roll_leg_right_toe_pitch_joint" type="hinge" axis="0.25881937415061845 0.9659252980174108 5.048137629304339e-07" pos="-0.028867466757023213 0.06930428828361108 0.015325724658682607" />
+                                        <geom name="leg_right_toe_pitch_geom" type="mesh" mesh="leg_right_toe_pitch" pos="0 0 0" euler="0 0 0" />
+                                        <inertial mass="0.03034789132477301" pos="-0.044009348556818484 0.06923727441921367 0.006644926106698121" fullinertia="8.322309343796648e-06 4.375791780556114e-06 1.0964655275498788e-05 -4.252795482021673e-07 -2.871635095788846e-07 5.472378289236361e-07" />
+                                    </body>
+                                </body>
+                            </body>
+                        </body>
+                    </body>
+                </body>
+            </body>
+            <body name="IMU" pos="-0.012630873508763503 0.41270820722517804 0.09624258120269334" euler="1.5707963267948968 -2.873464922820437e-17 -1.832595714594052">
+                <geom name="IMU_geom" type="mesh" mesh="IMU" pos="0 0 0" euler="0 0 0" />
+                <inertial mass="0.014574034267677826" pos="0.07309999999999985 -0.0001999999999995595 0.449461862106195" fullinertia="7.939304310514508e-07 7.694460534822024e-07 1.5426129471193568e-06 2.265197836176596e-22 -2.7409593094776076e-19 -1.0250234025002139e-20" />
+            </body>
+        </body>
+    </worldbody>
+</mujoco>
