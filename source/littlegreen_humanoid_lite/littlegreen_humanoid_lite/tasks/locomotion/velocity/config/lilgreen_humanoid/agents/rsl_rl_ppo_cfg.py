@@ -328,3 +328,76 @@ class LilgreenHardwareST3215LoadedV148PhaseLiftStepPPORunnerCfg(LilgreenHardware
 
     experiment_name = "lilgreen_v1_4_8_st3215_phase_lift_step"
     save_interval = 500
+
+@configclass
+class LilgreenHardwareST3215LoadedV9PPORunnerCfg(LilgreenHardwareST3215LoadedV147PhaseGuidedPPORunnerCfg):
+    """v9 gait-acquisition PPO configuration for a v5s3 Stand policy warm start.
+
+    The actor is expanded 45-D -> 47-D with zero-initialized phase columns;
+    critic and optimizer remain fresh.  A slightly lower learning rate and action
+    noise protect the mature stand prior during the first gait-acquisition stages.
+    """
+
+    num_steps_per_env = 64
+    max_iterations = 10000
+    save_interval = 250
+    experiment_name = "littlegreen_v2_0_0_st3215_v9_gait_acquisition"
+    empirical_normalization = False
+    policy = RslRlPpoActorCriticCfg(
+        init_noise_std=0.40,
+        actor_hidden_dims=[256, 128, 128],
+        critic_hidden_dims=[256, 128, 128],
+        activation="elu",
+    )
+    algorithm = RslRlPpoAlgorithmCfg(
+        value_loss_coef=1.0,
+        use_clipped_value_loss=True,
+        clip_param=0.2,
+        entropy_coef=0.004,
+        num_learning_epochs=5,
+        num_mini_batches=4,
+        learning_rate=3.0e-4,
+        schedule="adaptive",
+        gamma=0.99,
+        lam=0.95,
+        desired_kl=0.01,
+        max_grad_norm=1.0,
+    )
+
+
+@configclass
+class LilgreenHardwareST3215LoadedV10PPORunnerCfg(LilgreenHardwareST3215LoadedV9PPORunnerCfg):
+    """v10 command-synchronized transfer/lift/place PPO configuration.
+
+    Warm-start policy-only from v5s3 Stand model_3500.  The 45-D actor is expanded
+    to the unchanged 47-D observation shape with zero-initialized phase columns.
+    Critic and optimizer remain fresh because the phase semantics and gait rewards
+    are new.  The default run is intentionally 5,000 iterations for a go/no-go
+    decision before a longer refinement session.
+    """
+
+    num_steps_per_env = 64
+    max_iterations = 5000
+    save_interval = 250
+    experiment_name = "littlegreen_v2_0_0_st3215_v10_transfer_lift_place"
+    empirical_normalization = False
+    policy = RslRlPpoActorCriticCfg(
+        init_noise_std=0.42,
+        actor_hidden_dims=[256, 128, 128],
+        critic_hidden_dims=[256, 128, 128],
+        activation="elu",
+    )
+    algorithm = RslRlPpoAlgorithmCfg(
+        value_loss_coef=1.0,
+        use_clipped_value_loss=True,
+        clip_param=0.2,
+        entropy_coef=0.005,
+        num_learning_epochs=5,
+        num_mini_batches=4,
+        learning_rate=3.0e-4,
+        schedule="adaptive",
+        gamma=0.99,
+        lam=0.95,
+        desired_kl=0.01,
+        max_grad_norm=1.0,
+    )

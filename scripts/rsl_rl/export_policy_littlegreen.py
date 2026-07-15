@@ -430,6 +430,24 @@ def _build_deploy_config(
             "deployment_requires_action_contract_v2_transform": False,
         }
 
+    phase_metadata = {}
+    if args_cli.task == "Velocity-Lilgreen-Hardware-ST3215-Loaded-v10":
+        phase_metadata = {
+            "observation_contract_name": "47d_command_synchronized_phase_v10",
+            "observation_layout": (
+                "cmd3,base_ang_vel3,projected_gravity3,joint_pos_error12,"
+                "joint_vel12,previous_bounded_action12,phase_sin1,phase_cos1"
+            ),
+            "gait_phase_semantics": "command_synchronized_alternating_first_swing",
+            "gait_phase_standing_behavior": "frozen_double_support_phase_zero",
+            "gait_phase_movement_onset_behavior": "reset_to_alternating_swing_boundary",
+            "gait_phase_first_swing_balancing": "environment_parity_then_alternate_per_onset",
+            "gait_phase_period_s_initial": 0.90,
+            "gait_phase_period_s_curriculum": [0.90, 0.86, 0.82, 0.78],
+            "gait_phase_transition_fraction_per_boundary": [0.08, 0.07, 0.06, 0.05],
+            "deployment_requires_command_synchronized_phase_v10": True,
+        }
+
     return {
         "metadata": {
             "project_name": PROJECT_NAME,
@@ -482,6 +500,7 @@ def _build_deploy_config(
         # Observation configuration
         "num_observations": _get_observation_dim(env),
         "history_length": _get_history_length(env_cfg),
+        **phase_metadata,
 
         # Command configuration
         "command_velocity": _get_command_velocity(env, env_cfg),

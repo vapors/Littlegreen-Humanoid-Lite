@@ -60,6 +60,19 @@ def _env_step_dt(env: ManagerBasedRLEnv, fallback: float = 0.02) -> float:
     return fallback
 
 
+def _episode_reset_mask(env: ManagerBasedRLEnv, num_envs: int, device: torch.device) -> torch.Tensor:
+    """Return a best-effort mask for environments at the start of a new episode.
+
+    Isaac Lab resets ``episode_length_buf`` to zero.  Treating both zero and one as
+    reset-adjacent keeps stateful termination buffers clean regardless of whether the
+    termination manager runs before or after the first post-reset step increment.
+    """
+    episode_length = getattr(env, "episode_length_buf", None)
+    if torch.is_tensor(episode_length) and episode_length.shape[0] == num_envs:
+        return episode_length.to(device=device) <= 1
+    return torch.zeros(num_envs, device=device, dtype=torch.bool)
+
+
 def moving_no_progress_timeout(
     env: ManagerBasedRLEnv,
     command_name: str,
@@ -69,12 +82,11 @@ def moving_no_progress_timeout(
     timeout_s: float = 1.20,
     asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
 ) -> torch.Tensor:
-    """Terminate episodes that brace in place under clear movement commands.
+    """Terminate sustained no-progress under a clear movement command.
 
-    This is the v1.4.6 anti-planted mechanism. It gives each episode a short
-    grace period to organize a step, then resets environments that continue to
-    make too little velocity progress along the commanded horizontal direction.
-    Standing-command environments are unaffected.
+    The timers are explicitly cleared at every episode boundary and when this
+    termination fires.  This prevents a timeout accumulated in one episode from
+    leaking into a newly reset episode.
     """
     asset = env.scene[asset_cfg.name]
     command = env.command_manager.get_command(command_name)[:, :2]
@@ -89,6 +101,8 @@ def moving_no_progress_timeout(
     dt = _env_step_dt(env)
     num_envs = command.shape[0]
     device = command.device
+    reset_mask = _episode_reset_mask(env, num_envs, device)
+
     active_timer = getattr(env, "_littlegreen_v146_moving_active_timer_s", None)
     stall_timer = getattr(env, "_littlegreen_v146_no_progress_timer_s", None)
     if active_timer is None or active_timer.shape[0] != num_envs:
@@ -96,18 +110,21 @@ def moving_no_progress_timeout(
     if stall_timer is None or stall_timer.shape[0] != num_envs:
         stall_timer = torch.zeros(num_envs, device=device, dtype=torch.float32)
 
+    # Clear state inherited from a previous episode before evaluating this step.
+    active_timer = torch.where(reset_mask, torch.zeros_like(active_timer), active_timer)
+    stall_timer = torch.where(reset_mask, torch.zeros_like(stall_timer), stall_timer)
+
     active_timer = torch.where(moving, active_timer + dt, torch.zeros_like(active_timer))
     stall_timer = torch.where(stalled, stall_timer + dt, torch.zeros_like(stall_timer))
     done = moving & (active_timer > grace_time_s) & (stall_timer > timeout_s)
 
-    # Clear timers for terminated environments so a reset starts cleanly.
+    # Also clear immediately on termination so repeated manager evaluation cannot
+    # emit a second stale done before the environment reset is applied.
     active_timer = torch.where(done, torch.zeros_like(active_timer), active_timer)
     stall_timer = torch.where(done, torch.zeros_like(stall_timer), stall_timer)
     env._littlegreen_v146_moving_active_timer_s = active_timer
     env._littlegreen_v146_no_progress_timer_s = stall_timer
     return done
-
-
 
 
 def moving_no_support_timeout(
@@ -117,24 +134,53 @@ def moving_no_support_timeout(
     command_threshold: float = 0.22,
     max_no_support_s: float = 0.12,
     force_threshold: float = 1.0,
+    arming_timeout_s: float = 0.40,
 ) -> torch.Tensor:
     """Terminate persistent flight/no-support under moving commands.
 
-    v1.4.6 escaped planted bracing by allowing a hopping/falling exploit.  This
-    termination keeps v1.4.7 grounded: brief contact jitter is allowed, but both
-    feet off the ground for more than ``max_no_support_s`` is treated as failure.
+    This implementation is episode-reset-aware and requires a newly reset
+    environment to establish valid support before the no-support timer is normally
+    armed.  A bounded arming timeout remains as a fallback so a genuinely broken
+    reset pose cannot evade protection forever.
     """
-    asset = env.scene["robot"]
     command = env.command_manager.get_command(command_name)[:, :2]
     moving = torch.linalg.vector_norm(command, dim=1) > command_threshold
     contact_sensor = env.scene.sensors[sensor_cfg.name]
     forces = contact_sensor.data.net_forces_w_history[:, :, sensor_cfg.body_ids, :]
     in_contact = forces.norm(dim=-1).max(dim=1)[0] > force_threshold
-    no_support = torch.sum(in_contact.int(), dim=1) == 0
+    has_support = torch.sum(in_contact.int(), dim=1) > 0
+    no_support = ~has_support
+
+    num_envs = command.shape[0]
+    device = command.device
+    dt = _env_step_dt(env)
+    reset_mask = _episode_reset_mask(env, num_envs, device)
 
     timer = getattr(env, "_littlegreen_v147_no_support_timer_s", None)
-    if timer is None or timer.shape[0] != asset.data.root_pos_w.shape[0]:
-        timer = torch.zeros(asset.data.root_pos_w.shape[0], device=asset.data.root_pos_w.device)
-    timer = torch.where(moving & no_support, timer + float(env.step_dt), torch.zeros_like(timer))
+    had_support = getattr(env, "_littlegreen_v147_had_support", None)
+    arming_timer = getattr(env, "_littlegreen_v147_support_arming_timer_s", None)
+    if timer is None or timer.shape[0] != num_envs:
+        timer = torch.zeros(num_envs, device=device, dtype=torch.float32)
+    if had_support is None or had_support.shape[0] != num_envs:
+        had_support = torch.zeros(num_envs, device=device, dtype=torch.bool)
+    if arming_timer is None or arming_timer.shape[0] != num_envs:
+        arming_timer = torch.zeros(num_envs, device=device, dtype=torch.float32)
+
+    timer = torch.where(reset_mask, torch.zeros_like(timer), timer)
+    had_support = torch.where(reset_mask, torch.zeros_like(had_support), had_support)
+    arming_timer = torch.where(reset_mask, torch.zeros_like(arming_timer), arming_timer)
+
+    had_support = had_support | has_support
+    arming_timer = arming_timer + dt
+    armed = had_support | (arming_timer >= float(arming_timeout_s))
+
+    timer = torch.where(armed & moving & no_support, timer + dt, torch.zeros_like(timer))
+    done = armed & moving & (timer > max_no_support_s)
+
+    timer = torch.where(done, torch.zeros_like(timer), timer)
+    had_support = torch.where(done, torch.zeros_like(had_support), had_support)
+    arming_timer = torch.where(done, torch.zeros_like(arming_timer), arming_timer)
     env._littlegreen_v147_no_support_timer_s = timer
-    return timer > max_no_support_s
+    env._littlegreen_v147_had_support = had_support
+    env._littlegreen_v147_support_arming_timer_s = arming_timer
+    return done

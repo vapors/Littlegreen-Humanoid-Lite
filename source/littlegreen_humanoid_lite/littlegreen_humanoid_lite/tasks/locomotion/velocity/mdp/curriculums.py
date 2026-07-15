@@ -949,3 +949,244 @@ def st3215_loaded_v148_phase_lift_step_hardware_stage_curriculum(
         "actuator_velocity_scale_mean": float(torch.mean(action_term.sampled_velocity_scale).item()),
         "curriculum_profile_id": 148.0,
     }
+
+# -----------------------------------------------------------------------------
+# Littlegreen v2.0.0 / Hardware-ST3215-Loaded-v9 gait acquisition
+# -----------------------------------------------------------------------------
+
+def st3215_loaded_v9_gait_acquisition_curriculum(
+    env: RLTaskEnv,
+    env_ids: Sequence[int],
+    stage_step_boundaries: tuple[int, int, int] = (128000, 320000, 512000),
+    standing_fractions: tuple[float, float, float, float] = (0.25, 0.23, 0.21, 0.20),
+    lin_vel_x_ranges: tuple[tuple[float, float], ...] = (
+        (0.25, 0.36),
+        (0.25, 0.42),
+        (0.25, 0.50),
+        (0.25, 0.55),
+    ),
+    lin_vel_y_ranges: tuple[tuple[float, float], ...] = (
+        (-0.04, 0.04),
+        (-0.05, 0.05),
+        (-0.065, 0.065),
+        (-0.08, 0.08),
+    ),
+    ang_vel_z_ranges: tuple[tuple[float, float], ...] = (
+        (-0.08, 0.08),
+        (-0.12, 0.12),
+        (-0.17, 0.17),
+        (-0.22, 0.22),
+    ),
+    root_velocity_ranges: tuple[float, float, float, float] = (0.010, 0.015, 0.020, 0.025),
+    joint_reset_offsets: tuple[float, float, float, float] = (0.004, 0.006, 0.008, 0.010),
+    mass_scale_ranges: tuple[tuple[float, float], ...] = (
+        (0.995, 1.005),
+        (0.990, 1.010),
+        (0.985, 1.015),
+        (0.980, 1.020),
+    ),
+) -> dict[str, torch.Tensor | float]:
+    """Gentle four-stage forward-gait acquisition curriculum for v9.
+
+    With the v9 runner's 64 policy steps per PPO iteration, the default stage
+    changes occur near iterations 2000, 5000, and 8000.  Only command/reset/mass
+    ranges broaden.  External pushes remain disabled for the complete 10k run.
+    """
+    del env_ids
+    step = int(env.common_step_counter)
+    b0, b1, b2 = stage_step_boundaries
+    stage = 0 if step < b0 else 1 if step < b1 else 2 if step < b2 else 3
+
+    previous_stage = getattr(env, "_littlegreen_v9_gait_acquisition_stage", None)
+    if previous_stage != stage:
+        command_term = env.command_manager.get_term("base_velocity")
+        command_term.cfg.rel_standing_envs = standing_fractions[stage]
+        command_term.cfg.ranges.lin_vel_x = lin_vel_x_ranges[stage]
+        command_term.cfg.ranges.lin_vel_y = lin_vel_y_ranges[stage]
+        command_term.cfg.ranges.ang_vel_z = ang_vel_z_ranges[stage]
+
+        reset_base_cfg = env.event_manager.get_term_cfg("reset_base")
+        root_vel = root_velocity_ranges[stage]
+        reset_base_cfg.params["velocity_range"] = {
+            "x": (-root_vel, root_vel),
+            "y": (-root_vel, root_vel),
+            "z": (0.0, 0.0),
+            "roll": (-root_vel, root_vel),
+            "pitch": (-root_vel, root_vel),
+            "yaw": (-root_vel, root_vel),
+        }
+        env.event_manager.set_term_cfg("reset_base", reset_base_cfg)
+
+        reset_joint_cfg = env.event_manager.get_term_cfg("reset_robot_joints")
+        offset = joint_reset_offsets[stage]
+        reset_joint_cfg.params["position_range"] = (-offset, offset)
+        env.event_manager.set_term_cfg("reset_robot_joints", reset_joint_cfg)
+
+        mass_cfg = env.event_manager.get_term_cfg("base_mass")
+        mass_cfg.params["mass_distribution_params"] = mass_scale_ranges[stage]
+        env.event_manager.set_term_cfg("base_mass", mass_cfg)
+
+        # Force immediate resampling when the envelope changes.
+        command_term.time_left[:] = 0.0
+        env._littlegreen_v9_gait_acquisition_stage = stage
+
+    action_term = env.action_manager.get_term("joint_pos")
+    return {
+        "stage": float(stage),
+        "standing_fraction": float(standing_fractions[stage]),
+        "cmd_x_min": float(lin_vel_x_ranges[stage][0]),
+        "cmd_x_max": float(lin_vel_x_ranges[stage][1]),
+        "cmd_y_abs_max": float(max(abs(v) for v in lin_vel_y_ranges[stage])),
+        "cmd_yaw_abs_max": float(max(abs(v) for v in ang_vel_z_ranges[stage])),
+        "root_reset_velocity_abs_max": float(root_velocity_ranges[stage]),
+        "joint_reset_offset_abs_max": float(joint_reset_offsets[stage]),
+        "push_xy_abs_max": 0.0,
+        "mass_scale_min": float(mass_scale_ranges[stage][0]),
+        "mass_scale_max": float(mass_scale_ranges[stage][1]),
+        "actuator_delay_mean_ms": float(torch.mean(action_term.sampled_total_delay_s).item() * 1000.0),
+        "actuator_tau_mean_ms": float(torch.mean(action_term.sampled_tau_s).item() * 1000.0),
+        "actuator_velocity_scale_mean": float(torch.mean(action_term.sampled_velocity_scale).item()),
+        "curriculum_profile_id": 209.0,
+    }
+
+
+def st3215_loaded_v10_transfer_lift_place_curriculum(
+    env,
+    env_ids,
+    stage_step_boundaries: tuple[int, int, int] = (96000, 192000, 268800),
+    standing_fractions: tuple[float, float, float, float] = (0.28, 0.26, 0.23, 0.20),
+    lin_vel_x_ranges: tuple[tuple[float, float], ...] = (
+        (0.25, 0.34),
+        (0.25, 0.40),
+        (0.25, 0.48),
+        (0.25, 0.55),
+    ),
+    lin_vel_y_ranges: tuple[tuple[float, float], ...] = (
+        (0.0, 0.0),
+        (-0.02, 0.02),
+        (-0.05, 0.05),
+        (-0.08, 0.08),
+    ),
+    ang_vel_z_ranges: tuple[tuple[float, float], ...] = (
+        (0.0, 0.0),
+        (-0.04, 0.04),
+        (-0.12, 0.12),
+        (-0.22, 0.22),
+    ),
+    gait_period_s: tuple[float, float, float, float] = (0.90, 0.86, 0.82, 0.78),
+    transition_fractions: tuple[float, float, float, float] = (0.08, 0.07, 0.06, 0.05),
+    target_clearance_m: tuple[float, float, float, float] = (0.018, 0.024, 0.028, 0.030),
+    clearance_std_m: tuple[float, float, float, float] = (0.009, 0.010, 0.011, 0.012),
+    clearance_gate_m: tuple[float, float, float, float] = (0.008, 0.010, 0.012, 0.012),
+    target_step_m: tuple[float, float, float, float] = (0.025, 0.040, 0.050, 0.055),
+    placement_scales: tuple[float, float, float, float] = (0.15, 0.70, 1.00, 1.00),
+    tracking_scales: tuple[float, float, float, float] = (0.55, 0.70, 0.90, 1.00),
+    target_stance_force_ratios: tuple[float, float, float, float] = (0.75, 0.78, 0.80, 0.80),
+    com_target_forward_m: tuple[float, float, float, float] = (0.080, 0.082, 0.085, 0.085),
+    com_lateral_stance_fractions: tuple[float, float, float, float] = (0.75, 0.80, 0.85, 0.85),
+    root_velocity_ranges: tuple[float, float, float, float] = (0.008, 0.012, 0.018, 0.022),
+    joint_reset_offsets: tuple[float, float, float, float] = (0.003, 0.005, 0.007, 0.009),
+    mass_scale_ranges: tuple[tuple[float, float], ...] = (
+        (0.997, 1.003),
+        (0.995, 1.005),
+        (0.990, 1.010),
+        (0.985, 1.015),
+    ),
+) -> dict[str, torch.Tensor | float]:
+    """Condensed 5k v10 transfer -> lift -> place -> translate curriculum.
+
+    With 64 policy steps per PPO iteration, stages change near iterations 1500,
+    3000, and 4200.  The first stage is deliberately straight-forward and puts
+    reduced pressure on base-velocity tracking while the policy learns alternating
+    load transfer and real foot clearance.  Placement is then gated in gradually.
+    External pushes remain disabled for the entire go/no-go run.
+    """
+    del env_ids
+    step = int(env.common_step_counter)
+    b0, b1, b2 = stage_step_boundaries
+    stage = 0 if step < b0 else 1 if step < b1 else 2 if step < b2 else 3
+
+    previous_stage = getattr(env, "_littlegreen_v10_transfer_lift_place_stage", None)
+    if previous_stage != stage:
+        command_term = env.command_manager.get_term("base_velocity")
+        command_term.cfg.rel_standing_envs = standing_fractions[stage]
+        command_term.cfg.ranges.lin_vel_x = lin_vel_x_ranges[stage]
+        command_term.cfg.ranges.lin_vel_y = lin_vel_y_ranges[stage]
+        command_term.cfg.ranges.ang_vel_z = ang_vel_z_ranges[stage]
+
+        reset_base_cfg = env.event_manager.get_term_cfg("reset_base")
+        root_vel = root_velocity_ranges[stage]
+        reset_base_cfg.params["velocity_range"] = {
+            "x": (-root_vel, root_vel),
+            "y": (-root_vel, root_vel),
+            "z": (0.0, 0.0),
+            "roll": (-root_vel, root_vel),
+            "pitch": (-root_vel, root_vel),
+            "yaw": (-root_vel, root_vel),
+        }
+        env.event_manager.set_term_cfg("reset_base", reset_base_cfg)
+
+        reset_joint_cfg = env.event_manager.get_term_cfg("reset_robot_joints")
+        joint_offset = joint_reset_offsets[stage]
+        reset_joint_cfg.params["position_range"] = (-joint_offset, joint_offset)
+        env.event_manager.set_term_cfg("reset_robot_joints", reset_joint_cfg)
+
+        mass_cfg = env.event_manager.get_term_cfg("base_mass")
+        mass_cfg.params["mass_distribution_params"] = mass_scale_ranges[stage]
+        env.event_manager.set_term_cfg("base_mass", mass_cfg)
+
+        # Reward/phase functions read these scalars directly.  This avoids
+        # rebuilding manager terms and keeps stage changes atomic.
+        env._littlegreen_v10_gait_period_s = float(gait_period_s[stage])
+        env._littlegreen_v10_transition_fraction = float(transition_fractions[stage])
+        env._littlegreen_v10_target_clearance_m = float(target_clearance_m[stage])
+        env._littlegreen_v10_clearance_std_m = float(clearance_std_m[stage])
+        env._littlegreen_v10_clearance_gate_m = float(clearance_gate_m[stage])
+        env._littlegreen_v10_target_step_m = float(target_step_m[stage])
+        env._littlegreen_v10_placement_scale = float(placement_scales[stage])
+        env._littlegreen_v10_tracking_scale = float(tracking_scales[stage])
+        env._littlegreen_v10_target_stance_force_ratio = float(
+            target_stance_force_ratios[stage]
+        )
+        env._littlegreen_v10_com_target_forward_m = float(com_target_forward_m[stage])
+        env._littlegreen_v10_com_lateral_stance_fraction = float(
+            com_lateral_stance_fractions[stage]
+        )
+
+        # Start the new skill stage from fresh commands and synchronized phase.
+        command_term.time_left[:] = 0.0
+        env._littlegreen_v10_was_moving = torch.zeros(
+            env.num_envs, device=command_term.time_left.device, dtype=torch.bool
+        )
+        env._littlegreen_v10_transfer_lift_place_stage = stage
+
+    action_term = env.action_manager.get_term("joint_pos")
+    return {
+        "stage": float(stage),
+        "standing_fraction": float(standing_fractions[stage]),
+        "cmd_x_min": float(lin_vel_x_ranges[stage][0]),
+        "cmd_x_max": float(lin_vel_x_ranges[stage][1]),
+        "cmd_y_abs_max": float(max(abs(v) for v in lin_vel_y_ranges[stage])),
+        "cmd_yaw_abs_max": float(max(abs(v) for v in ang_vel_z_ranges[stage])),
+        "gait_period_s": float(gait_period_s[stage]),
+        "transition_fraction_per_half": float(transition_fractions[stage]),
+        "double_support_fraction_total": float(2.0 * transition_fractions[stage]),
+        "target_clearance_m": float(target_clearance_m[stage]),
+        "clearance_gate_m": float(clearance_gate_m[stage]),
+        "target_step_m": float(target_step_m[stage]),
+        "placement_scale": float(placement_scales[stage]),
+        "tracking_scale": float(tracking_scales[stage]),
+        "target_stance_force_ratio": float(target_stance_force_ratios[stage]),
+        "com_target_forward_m": float(com_target_forward_m[stage]),
+        "com_lateral_stance_fraction": float(com_lateral_stance_fractions[stage]),
+        "moving_height_target_m": 0.455,
+        "root_reset_velocity_abs_max": float(root_velocity_ranges[stage]),
+        "joint_reset_offset_abs_max": float(joint_reset_offsets[stage]),
+        "push_xy_abs_max": 0.0,
+        "mass_scale_min": float(mass_scale_ranges[stage][0]),
+        "mass_scale_max": float(mass_scale_ranges[stage][1]),
+        "actuator_delay_mean_ms": float(torch.mean(action_term.sampled_total_delay_s).item() * 1000.0),
+        "actuator_tau_mean_ms": float(torch.mean(action_term.sampled_tau_s).item() * 1000.0),
+        "actuator_velocity_scale_mean": float(torch.mean(action_term.sampled_velocity_scale).item()),
+        "curriculum_profile_id": 210.0,
+    }

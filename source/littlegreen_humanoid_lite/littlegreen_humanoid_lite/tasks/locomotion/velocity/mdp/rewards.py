@@ -1306,3 +1306,515 @@ def moving_yaw_stability_penalty(
         + float(lateral_velocity_weight) * lateral_pen * (lin_norm > lin_command_threshold).float()
         + float(yaw_only_linear_drift_weight) * yaw_only_drift * yaw_only.float()
     ) * active.float()
+
+
+# -----------------------------------------------------------------------------
+# Littlegreen v2.0.0 v10 command-synchronized transfer/lift/place scaffold
+# -----------------------------------------------------------------------------
+
+
+def _v10_episode_reset_mask(env: ManagerBasedRLEnv, num_envs: int, device: torch.device) -> torch.Tensor:
+    """Best-effort per-environment reset mask without depending on manager internals."""
+    episode_length = getattr(env, "episode_length_buf", None)
+    if isinstance(episode_length, torch.Tensor) and episode_length.shape[0] == num_envs:
+        return episode_length.to(device=device) <= 0
+    return torch.zeros(num_envs, device=device, dtype=torch.bool)
+
+
+def _v10_command_synchronized_phase(
+    env: ManagerBasedRLEnv,
+    command_name: str = "base_velocity",
+    linear_command_threshold: float = 0.20,
+    yaw_command_threshold: float = 0.08,
+    period_s: float = 0.90,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Return a movement-synchronized gait phase and moving mask.
+
+    The phase is frozen at a double-support boundary while standing.  On each
+    standing-to-moving transition it resets to a boundary and alternates the
+    first swing side.  The first movement onset is balanced across environments
+    by environment-index parity.  State is advanced at most once per simulator
+    step even though observations and several reward terms call this helper.
+
+    Phase convention:
+    * phase 0.0 starts left stance / right swing;
+    * phase 0.5 starts right stance / left swing.
+    """
+    command = env.command_manager.get_command(command_name)
+    linear_norm = torch.linalg.vector_norm(command[:, :2], dim=1)
+    yaw_abs = torch.abs(command[:, 2]) if command.shape[1] > 2 else torch.zeros_like(linear_norm)
+    moving = (linear_norm > linear_command_threshold) | (yaw_abs > yaw_command_threshold)
+
+    num_envs = command.shape[0]
+    device = command.device
+    phase = getattr(env, "_littlegreen_v10_gait_phase", None)
+    was_moving = getattr(env, "_littlegreen_v10_was_moving", None)
+    next_first_swing_left = getattr(env, "_littlegreen_v10_next_first_swing_left", None)
+    active_first_swing_left = getattr(env, "_littlegreen_v10_active_first_swing_left", None)
+
+    parity_first_swing_left = (torch.arange(num_envs, device=device) % 2) == 0
+    if not isinstance(phase, torch.Tensor) or phase.shape[0] != num_envs:
+        phase = torch.zeros(num_envs, device=device, dtype=torch.float32)
+    if not isinstance(was_moving, torch.Tensor) or was_moving.shape[0] != num_envs:
+        was_moving = torch.zeros(num_envs, device=device, dtype=torch.bool)
+    if not isinstance(next_first_swing_left, torch.Tensor) or next_first_swing_left.shape[0] != num_envs:
+        next_first_swing_left = parity_first_swing_left.clone()
+    if not isinstance(active_first_swing_left, torch.Tensor) or active_first_swing_left.shape[0] != num_envs:
+        active_first_swing_left = parity_first_swing_left.clone()
+
+    common_step = int(getattr(env, "common_step_counter", 0))
+    last_step = int(getattr(env, "_littlegreen_v10_phase_last_common_step", -1))
+    if common_step != last_step:
+        reset_mask = _v10_episode_reset_mask(env, num_envs, device)
+        episode_length = getattr(env, "episode_length_buf", None)
+        last_episode_length = getattr(env, "_littlegreen_v10_phase_last_episode_length", None)
+        if isinstance(episode_length, torch.Tensor) and episode_length.shape[0] == num_envs:
+            current_episode_length = episode_length.to(device=device)
+            if isinstance(last_episode_length, torch.Tensor) and last_episode_length.shape[0] == num_envs:
+                reset_mask = reset_mask | (current_episode_length < last_episode_length.to(device=device))
+            env._littlegreen_v10_phase_last_episode_length = current_episode_length.clone()
+
+        phase = torch.where(reset_mask, torch.zeros_like(phase), phase)
+        was_moving = torch.where(reset_mask, torch.zeros_like(was_moving), was_moving)
+        next_first_swing_left = torch.where(
+            reset_mask, parity_first_swing_left, next_first_swing_left
+        )
+        active_first_swing_left = torch.where(
+            reset_mask, parity_first_swing_left, active_first_swing_left
+        )
+
+        onset = moving & (~was_moving)
+        active_first_swing_left = torch.where(onset, next_first_swing_left, active_first_swing_left)
+        next_first_swing_left = torch.where(onset, ~next_first_swing_left, next_first_swing_left)
+        onset_boundary = torch.where(
+            active_first_swing_left,
+            torch.full_like(phase, 0.5),
+            torch.zeros_like(phase),
+        )
+        phase = torch.where(onset, onset_boundary, phase)
+
+        active_period_s = float(getattr(env, "_littlegreen_v10_gait_period_s", period_s))
+        if active_period_s <= 1.0e-6:
+            raise ValueError("v10 gait period must be positive")
+        dt = float(getattr(env, "step_dt", 0.02))
+        advance = dt / active_period_s
+        phase = torch.where(
+            moving & (~onset),
+            torch.remainder(phase + advance, 1.0),
+            phase,
+        )
+        # Standing always exposes the same double-support phase observation.
+        phase = torch.where(moving, phase, torch.zeros_like(phase))
+        was_moving = moving
+
+        env._littlegreen_v10_gait_phase = phase
+        env._littlegreen_v10_was_moving = was_moving
+        env._littlegreen_v10_next_first_swing_left = next_first_swing_left
+        env._littlegreen_v10_active_first_swing_left = active_first_swing_left
+        env._littlegreen_v10_phase_last_common_step = common_step
+
+    return phase, moving
+
+
+def command_synchronized_gait_phase_sin_cos(
+    env: ManagerBasedRLEnv,
+    command_name: str = "base_velocity",
+    linear_command_threshold: float = 0.20,
+    yaw_command_threshold: float = 0.08,
+    period_s: float = 0.90,
+) -> torch.Tensor:
+    """47-D contract observation tail using the v10 command-synchronized phase."""
+    phase, _ = _v10_command_synchronized_phase(
+        env,
+        command_name=command_name,
+        linear_command_threshold=linear_command_threshold,
+        yaw_command_threshold=yaw_command_threshold,
+        period_s=period_s,
+    )
+    angle = 2.0 * math.pi * phase
+    return torch.stack((torch.sin(angle), torch.cos(angle)), dim=-1)
+
+
+def _v10_phase_schedule(
+    env: ManagerBasedRLEnv,
+    command_name: str,
+    linear_command_threshold: float = 0.20,
+    yaw_command_threshold: float = 0.08,
+    period_s: float = 0.90,
+    transition_fraction: float = 0.08,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    """Return v10 phase schedule state.
+
+    Returns ``(phase, moving, transition, left_stance, swing_progress,
+    transfer_progress)``.  Unlike the older symmetric transition window, v10
+    uses one short double-support/weight-transfer interval at the beginning of
+    each half-cycle.  A transition fraction of 0.05 therefore means 10% total
+    double support per full cycle rather than 20% on each side of both boundaries.
+    """
+    phase, moving = _v10_command_synchronized_phase(
+        env,
+        command_name=command_name,
+        linear_command_threshold=linear_command_threshold,
+        yaw_command_threshold=yaw_command_threshold,
+        period_s=period_s,
+    )
+    active_transition_fraction = float(
+        getattr(env, "_littlegreen_v10_transition_fraction", transition_fraction)
+    )
+    if not 0.0 < active_transition_fraction < 0.25:
+        raise ValueError("v10 transition_fraction must be in (0, 0.25)")
+
+    left_stance = phase < 0.5
+    half_phase = torch.remainder(2.0 * phase, 1.0)
+    # The parameter is the fraction of the *full* cycle allocated to each
+    # transfer window.  In half-cycle coordinates the width is therefore 2x.
+    half_transition_fraction = 2.0 * active_transition_fraction
+    transition = half_phase < half_transition_fraction
+    swing_progress = torch.clamp(
+        (half_phase - half_transition_fraction) / (1.0 - half_transition_fraction),
+        min=0.0,
+        max=1.0,
+    )
+    transfer_progress = torch.clamp(
+        half_phase / half_transition_fraction,
+        min=0.0,
+        max=1.0,
+    )
+    return phase, moving, transition, left_stance, swing_progress, transfer_progress
+
+
+def _v10_selected_foot_state(
+    env: ManagerBasedRLEnv,
+    command_name: str,
+    asset_cfg: SceneEntityCfg,
+    linear_command_threshold: float = 0.20,
+    yaw_command_threshold: float = 0.08,
+    period_s: float = 0.90,
+    transition_fraction: float = 0.08,
+) -> tuple[
+    torch.Tensor,
+    torch.Tensor,
+    torch.Tensor,
+    torch.Tensor,
+    torch.Tensor,
+    torch.Tensor,
+    torch.Tensor,
+]:
+    """Return v10 selected stance/swing kinematics.
+
+    Returns ``(moving, transition, left_stance, swing_progress, clearance,
+    step_forward, foot_pos_w)``.  Clearance is relative to the selected stance
+    foot and placement is projected along the commanded horizontal direction.
+    """
+    _, moving, transition, left_stance, swing_progress, _ = _v10_phase_schedule(
+        env,
+        command_name=command_name,
+        linear_command_threshold=linear_command_threshold,
+        yaw_command_threshold=yaw_command_threshold,
+        period_s=period_s,
+        transition_fraction=transition_fraction,
+    )
+    asset = env.scene[asset_cfg.name]
+    foot_pos = asset.data.body_pos_w[:, asset_cfg.body_ids, :3]
+    if foot_pos.shape[1] < 2:
+        zeros = torch.zeros(foot_pos.shape[0], device=foot_pos.device)
+        return moving, transition, left_stance, swing_progress, zeros, zeros, foot_pos
+
+    left_stance_pos = foot_pos[:, 0, :]
+    right_stance_pos = foot_pos[:, 1, :]
+    stance_pos = torch.where(left_stance.unsqueeze(-1), left_stance_pos, right_stance_pos)
+    swing_pos = torch.where(left_stance.unsqueeze(-1), right_stance_pos, left_stance_pos)
+    clearance = swing_pos[:, 2] - stance_pos[:, 2]
+
+    asset_yaw = yaw_quat(asset.data.root_quat_w)
+    swing_delta_yaw = quat_apply_inverse(asset_yaw, swing_pos - stance_pos)[:, :2]
+    command_xy = env.command_manager.get_command(command_name)[:, :2]
+    command_norm = torch.linalg.vector_norm(command_xy, dim=1)
+    command_dir = command_xy / torch.clamp(command_norm.unsqueeze(-1), min=1.0e-6)
+    step_forward = torch.sum(swing_delta_yaw * command_dir, dim=1)
+    return moving, transition, left_stance, swing_progress, clearance, step_forward, foot_pos
+
+
+def v10_track_lin_vel_xy_yaw_frame_exp(
+    env: ManagerBasedRLEnv,
+    std: float,
+    command_name: str,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+    default_stage_scale: float = 0.55,
+) -> torch.Tensor:
+    """Velocity tracking with stage-dependent pressure during skill acquisition."""
+    stage_scale = float(getattr(env, "_littlegreen_v10_tracking_scale", default_stage_scale))
+    return stage_scale * track_lin_vel_xy_yaw_frame_exp(
+        env, std=std, command_name=command_name, asset_cfg=asset_cfg
+    )
+
+
+def v10_signed_phase_contact_reward(
+    env: ManagerBasedRLEnv,
+    command_name: str,
+    sensor_cfg: SceneEntityCfg,
+    linear_command_threshold: float = 0.20,
+    yaw_command_threshold: float = 0.08,
+    period_s: float = 0.90,
+    transition_fraction: float = 0.08,
+    force_threshold: float = 1.0,
+    double_support_swing_score: float = -0.40,
+) -> torch.Tensor:
+    """Signed contact schedule with no reward loophole for planted double support."""
+    contacts = _foot_contacts(env, sensor_cfg, force_threshold=force_threshold)
+    if contacts.shape[1] < 2:
+        return torch.zeros(contacts.shape[0], device=contacts.device)
+    _, moving, transition, left_stance, _, _ = _v10_phase_schedule(
+        env,
+        command_name=command_name,
+        linear_command_threshold=linear_command_threshold,
+        yaw_command_threshold=yaw_command_threshold,
+        period_s=period_s,
+        transition_fraction=transition_fraction,
+    )
+    left_contact = contacts[:, 0]
+    right_contact = contacts[:, 1]
+    both = left_contact & right_contact
+    none = (~left_contact) & (~right_contact)
+    left_only = left_contact & (~right_contact)
+    right_only = (~left_contact) & right_contact
+    correct_single = torch.where(left_stance, left_only, right_only)
+    wrong_single = torch.where(left_stance, right_only, left_only)
+
+    transition_score = torch.where(
+        both,
+        torch.ones_like(left_contact, dtype=torch.float32),
+        torch.where(
+            correct_single,
+            torch.full_like(left_contact, 0.20, dtype=torch.float32),
+            torch.where(
+                wrong_single,
+                torch.full_like(left_contact, -0.60, dtype=torch.float32),
+                torch.full_like(left_contact, -1.0, dtype=torch.float32),
+            ),
+        ),
+    )
+    swing_score = torch.where(
+        correct_single,
+        torch.ones_like(left_contact, dtype=torch.float32),
+        torch.where(
+            both,
+            torch.full_like(left_contact, float(double_support_swing_score), dtype=torch.float32),
+            torch.full_like(left_contact, -1.0, dtype=torch.float32),
+        ),
+    )
+    score = torch.where(transition, transition_score, swing_score)
+    score = torch.where(none, torch.full_like(score, -1.0), score)
+    return score * moving.float()
+
+
+def v10_support_force_transfer_reward(
+    env: ManagerBasedRLEnv,
+    command_name: str,
+    sensor_cfg: SceneEntityCfg,
+    linear_command_threshold: float = 0.20,
+    yaw_command_threshold: float = 0.08,
+    period_s: float = 0.90,
+    transition_fraction: float = 0.08,
+    target_stance_ratio: float = 0.75,
+    early_swing_fraction: float = 0.20,
+    force_threshold: float = 1.0,
+    eps: float = 1.0e-6,
+) -> torch.Tensor:
+    """Reward alternating load transfer onto the phase-selected stance foot.
+
+    Equal loading is exactly zero reward.  Loading the wrong foot is negative,
+    while reaching the target stance-force ratio is +1.  The term is active only
+    during the short transfer interval and early swing.
+    """
+    _, moving, transition, left_stance, swing_progress, _ = _v10_phase_schedule(
+        env,
+        command_name=command_name,
+        linear_command_threshold=linear_command_threshold,
+        yaw_command_threshold=yaw_command_threshold,
+        period_s=period_s,
+        transition_fraction=transition_fraction,
+    )
+    sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    forces = sensor.data.net_forces_w_history[:, :, sensor_cfg.body_ids, :]
+    vertical = torch.abs(forces[..., 2]).max(dim=1)[0]
+    if vertical.shape[1] < 2:
+        return torch.zeros(vertical.shape[0], device=vertical.device)
+    left_force, right_force = vertical[:, 0], vertical[:, 1]
+    stance_force = torch.where(left_stance, left_force, right_force)
+    total_force = left_force + right_force
+    stance_ratio = stance_force / torch.clamp(total_force, min=eps)
+
+    active_target_ratio = float(
+        getattr(env, "_littlegreen_v10_target_stance_force_ratio", target_stance_ratio)
+    )
+    if active_target_ratio <= 0.5 or active_target_ratio > 1.0:
+        raise ValueError("v10 target stance force ratio must be in (0.5, 1.0]")
+    signed = torch.clamp(
+        (stance_ratio - 0.5) / (active_target_ratio - 0.5),
+        min=-1.0,
+        max=1.0,
+    )
+    has_support = total_force > force_threshold
+    signed = torch.where(has_support, signed, torch.full_like(signed, -1.0))
+    transfer_window = transition | ((~transition) & (swing_progress < early_swing_fraction))
+    return signed * transfer_window.float() * moving.float()
+
+
+def v10_phase_com_shift_reward(
+    env: ManagerBasedRLEnv,
+    command_name: str,
+    asset_cfg: SceneEntityCfg,
+    linear_command_threshold: float = 0.20,
+    yaw_command_threshold: float = 0.08,
+    period_s: float = 0.90,
+    transition_fraction: float = 0.08,
+    target_forward_m: float = 0.080,
+    neutral_forward_m: float = 0.070,
+    lateral_stance_fraction: float = 0.75,
+    forward_std_m: float = 0.035,
+    lateral_std_m: float = 0.030,
+    early_swing_fraction: float = 0.30,
+) -> torch.Tensor:
+    """Reward a forward, alternating COM shift toward the expected stance leg.
+
+    The stable stand COM position (neutral forward offset, centered laterally) is
+    normalized to zero reward.  Shifting toward the wrong leg becomes negative,
+    so one permanent support leg cannot satisfy both half-cycles.
+    """
+    _, moving, transition, left_stance, swing_progress, _ = _v10_phase_schedule(
+        env,
+        command_name=command_name,
+        linear_command_threshold=linear_command_threshold,
+        yaw_command_threshold=yaw_command_threshold,
+        period_s=period_s,
+        transition_fraction=transition_fraction,
+    )
+    asset = env.scene[asset_cfg.name]
+    foot_pos = asset.data.body_pos_w[:, asset_cfg.body_ids, :3]
+    if foot_pos.shape[1] < 2:
+        return torch.zeros(foot_pos.shape[0], device=foot_pos.device)
+
+    midpoint = 0.5 * (foot_pos[:, 0, :] + foot_pos[:, 1, :])
+    left_rel = foot_pos[:, 0, :] - midpoint
+    right_rel = foot_pos[:, 1, :] - midpoint
+    com_rel = asset.data.root_com_pos_w - midpoint
+    yaw = yaw_quat(asset.data.root_quat_w)
+    left_rel_yaw = quat_apply_inverse(yaw, left_rel)
+    right_rel_yaw = quat_apply_inverse(yaw, right_rel)
+    com_rel_yaw = quat_apply_inverse(yaw, com_rel)
+    stance_rel_yaw = torch.where(left_stance.unsqueeze(-1), left_rel_yaw, right_rel_yaw)
+
+    active_forward = float(getattr(env, "_littlegreen_v10_com_target_forward_m", target_forward_m))
+    active_lateral_fraction = float(
+        getattr(env, "_littlegreen_v10_com_lateral_stance_fraction", lateral_stance_fraction)
+    )
+    target_x = torch.full_like(com_rel_yaw[:, 0], active_forward)
+    target_y = active_lateral_fraction * stance_rel_yaw[:, 1]
+    dx = (com_rel_yaw[:, 0] - target_x) / max(float(forward_std_m), 1.0e-6)
+    dy = (com_rel_yaw[:, 1] - target_y) / max(float(lateral_std_m), 1.0e-6)
+    raw = torch.exp(-0.5 * (torch.square(dx) + torch.square(dy)))
+
+    neutral_dx = (float(neutral_forward_m) - target_x) / max(float(forward_std_m), 1.0e-6)
+    neutral_dy = (0.0 - target_y) / max(float(lateral_std_m), 1.0e-6)
+    baseline = torch.exp(-0.5 * (torch.square(neutral_dx) + torch.square(neutral_dy)))
+    normalized = (raw - baseline) / torch.clamp(1.0 - baseline, min=1.0e-5)
+    normalized = torch.clamp(normalized, min=-1.0, max=1.0)
+    transfer_window = transition | ((~transition) & (swing_progress < early_swing_fraction))
+    return normalized * transfer_window.float() * moving.float()
+
+
+def v10_swing_clearance_trajectory_reward(
+    env: ManagerBasedRLEnv,
+    command_name: str,
+    asset_cfg: SceneEntityCfg,
+    linear_command_threshold: float = 0.20,
+    yaw_command_threshold: float = 0.08,
+    period_s: float = 0.90,
+    transition_fraction: float = 0.08,
+    target_clearance_m: float = 0.018,
+    clearance_std_m: float = 0.009,
+) -> torch.Tensor:
+    """Baseline-corrected swing-height trajectory reward.
+
+    The desired trajectory is ``H*sin(pi*s)``.  Zero clearance receives exactly
+    zero reward at every swing phase, eliminating the positive Gaussian baseline
+    that allowed v9 to remain planted.
+    """
+    moving, transition, _, swing_progress, clearance, _, _ = _v10_selected_foot_state(
+        env,
+        command_name=command_name,
+        asset_cfg=asset_cfg,
+        linear_command_threshold=linear_command_threshold,
+        yaw_command_threshold=yaw_command_threshold,
+        period_s=period_s,
+        transition_fraction=transition_fraction,
+    )
+    active_target = float(
+        getattr(env, "_littlegreen_v10_target_clearance_m", target_clearance_m)
+    )
+    active_std = float(getattr(env, "_littlegreen_v10_clearance_std_m", clearance_std_m))
+    shape = torch.sin(math.pi * swing_progress)
+    reference = active_target * shape
+    raw = torch.exp(-0.5 * torch.square((clearance - reference) / max(active_std, 1.0e-6)))
+    zero_baseline = torch.exp(-0.5 * torch.square(reference / max(active_std, 1.0e-6)))
+    normalized = (raw - zero_baseline) / torch.clamp(1.0 - zero_baseline, min=1.0e-5)
+    normalized = torch.clamp(normalized, min=0.0, max=1.0)
+    active = moving & (~transition)
+    return normalized * shape * active.float()
+
+
+def v10_clearance_gated_placement_reward(
+    env: ManagerBasedRLEnv,
+    command_name: str,
+    asset_cfg: SceneEntityCfg,
+    linear_command_threshold: float = 0.20,
+    yaw_command_threshold: float = 0.08,
+    period_s: float = 0.90,
+    transition_fraction: float = 0.08,
+    target_step_m: float = 0.025,
+    step_std_m: float = 0.025,
+    clearance_gate_m: float = 0.008,
+    gate_width_m: float = 0.006,
+    placement_start_progress: float = 0.35,
+    placement_scale: float = 0.15,
+) -> torch.Tensor:
+    """Reward forward placement only after real swing-foot clearance exists.
+
+    Zero forward displacement is normalized to zero reward, and the term is
+    smoothly gated by both swing progress and measured clearance.
+    """
+    moving, transition, _, swing_progress, clearance, step_forward, _ = _v10_selected_foot_state(
+        env,
+        command_name=command_name,
+        asset_cfg=asset_cfg,
+        linear_command_threshold=linear_command_threshold,
+        yaw_command_threshold=yaw_command_threshold,
+        period_s=period_s,
+        transition_fraction=transition_fraction,
+    )
+    active_target = float(getattr(env, "_littlegreen_v10_target_step_m", target_step_m))
+    active_gate = float(getattr(env, "_littlegreen_v10_clearance_gate_m", clearance_gate_m))
+    active_scale = float(getattr(env, "_littlegreen_v10_placement_scale", placement_scale))
+
+    progress_gate = torch.clamp(
+        (swing_progress - placement_start_progress) / max(1.0 - placement_start_progress, 1.0e-6),
+        min=0.0,
+        max=1.0,
+    )
+    # Smoothstep avoids a hard discontinuity when placement is enabled.
+    progress_gate = progress_gate * progress_gate * (3.0 - 2.0 * progress_gate)
+    clearance_gate = torch.clamp(
+        (clearance - active_gate) / max(float(gate_width_m), 1.0e-6),
+        min=0.0,
+        max=1.0,
+    )
+    clearance_gate = clearance_gate * clearance_gate * (3.0 - 2.0 * clearance_gate)
+
+    target = active_target * progress_gate
+    raw = torch.exp(-0.5 * torch.square((step_forward - target) / max(float(step_std_m), 1.0e-6)))
+    zero_baseline = torch.exp(-0.5 * torch.square(target / max(float(step_std_m), 1.0e-6)))
+    normalized = (raw - zero_baseline) / torch.clamp(1.0 - zero_baseline, min=1.0e-5)
+    normalized = torch.clamp(normalized, min=0.0, max=1.0)
+    active = moving & (~transition)
+    return active_scale * normalized * progress_gate * clearance_gate * active.float()

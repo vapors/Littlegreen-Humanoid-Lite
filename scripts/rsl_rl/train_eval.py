@@ -242,10 +242,11 @@ def _load_policy_only_warm_start(runner: OnPolicyRunner, checkpoint_path: str, d
             current[key] = value.to(device=current[key].device, dtype=current[key].dtype)
             loaded.append(key)
             continue
-        # v1.4.7 adds two gait-phase observations.  Allow actor first-layer
-        # expansion by copying the old input columns and keeping new columns from
-        # the fresh initialization.  This keeps the Stand policy motor prior while
-        # giving the new phase inputs learnable random weights.
+        # Phase-guided tasks expand the actor input (45-D -> 47-D). Copy the
+        # checkpoint columns exactly and initialize every newly added observation
+        # column to zero. The initial expanded actor is therefore mathematically
+        # equivalent to the source Stand policy; gradients can introduce phase
+        # dependence gradually instead of injecting random phase behavior at step 0.
         if (
             hasattr(value, "ndim")
             and value.ndim == 2
@@ -254,10 +255,14 @@ def _load_policy_only_warm_start(runner: OnPolicyRunner, checkpoint_path: str, d
             and current[key].shape[1] > value.shape[1]
             and (key.startswith("actor") or ".actor" in key or "mlp" in key or "policy" in key)
         ):
-            expanded = current[key].clone()
+            expanded = torch.zeros_like(current[key])
             expanded[:, : value.shape[1]] = value.to(device=current[key].device, dtype=current[key].dtype)
             current[key] = expanded
-            partial_loaded.append(f"{key}: {tuple(value.shape)} -> {tuple(expanded.shape)}")
+            added_columns = int(expanded.shape[1] - value.shape[1])
+            partial_loaded.append(
+                f"{key}: {tuple(value.shape)} -> {tuple(expanded.shape)} "
+                f"({added_columns} new input columns zero-initialized)"
+            )
             continue
         skipped.append(key)
     actor_critic.load_state_dict(current, strict=True)

@@ -11,6 +11,8 @@ from . import (
     env_cfg_hardware_st3215_loaded_v143,
     env_cfg_hardware_st3215_loaded_v144,
     env_cfg_hardware_st3215_loaded_v145,
+    env_cfg_hardware_st3215_loaded_v9,
+    env_cfg_hardware_st3215_loaded_v10,
     env_cfg_stand,
     env_cfg_stand_st3215,
     env_cfg_stand_st3215_loaded,
@@ -287,5 +289,32 @@ gym.register(
     kwargs={
         "env_cfg_entry_point": env_cfg_hardware_st3215_loaded_v145.LilgreenHardwareST3215LoadedV148PhaseLiftStepEnvCfg,
         "rsl_rl_cfg_entry_point": agents.rsl_rl_ppo_cfg.LilgreenHardwareST3215LoadedV148PhaseLiftStepPPORunnerCfg,
+    },
+)
+
+# Littlegreen v2.0.0 v9 gait acquisition.  Preserves the v5s3 action/actuator
+# contract and v7/v8 47-D phase observation, but uses reset-safe terminations,
+# a standalone slim reward set, and a gentle forward-only staged curriculum.
+gym.register(
+    id="Velocity-Lilgreen-Hardware-ST3215-Loaded-v9",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": env_cfg_hardware_st3215_loaded_v9.LilgreenHardwareST3215LoadedV9GaitAcquisitionEnvCfg,
+        "rsl_rl_cfg_entry_point": agents.rsl_rl_ppo_cfg.LilgreenHardwareST3215LoadedV9PPORunnerCfg,
+    },
+)
+
+
+# Littlegreen v2.0.0 v10 command-synchronized transfer/lift/place acquisition.
+# Preserves the v5s3 action/actuator contract and 47-D observation shape, but
+# revises the phase semantics and gait scaffold for a condensed 5k go/no-go run.
+gym.register(
+    id="Velocity-Lilgreen-Hardware-ST3215-Loaded-v10",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": env_cfg_hardware_st3215_loaded_v10.LilgreenHardwareST3215LoadedV10TransferLiftPlaceEnvCfg,
+        "rsl_rl_cfg_entry_point": agents.rsl_rl_ppo_cfg.LilgreenHardwareST3215LoadedV10PPORunnerCfg,
     },
 )
