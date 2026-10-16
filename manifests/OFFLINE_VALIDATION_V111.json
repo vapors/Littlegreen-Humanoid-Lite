@@ -1,4 +1,5 @@
 {
+  "hotfix": "HF1 reward-term named-parameter signatures",
   "intentional_reward_changes": {
     "balanced_swing_discovery": {
       "function": "mdp.bilateral_swing_discovery_v111",
@@ -44,20 +45,23 @@
     "live analyzer from an 11.1 checkpoint",
     "live ONNX exporter/deployment metadata write",
     "Python 3.10 editable install on Isaac Sim host",
-    "Track 2 zero-command runtime implementation and physical motion"
+    "Track 2 zero-command runtime implementation and physical motion",
+    "Isaac Lab RewardManager task initialization after HF1 (host retest required)"
   ],
   "release": "11.1.0",
   "reward_diff_count": 5,
   "source": "v11.0.0 HF1 full standalone ZIP",
   "source_sha256": "ad5b7c7a4f88ee0135e55d05665d4a83e486b3f5ee53b026313a641c5d91855a",
-  "status": "PASS_OFFLINE_HOST_RUNTIME_REQUIRED",
+  "status": "PASS_OFFLINE_HF1_HOST_RUNTIME_REQUIRED",
   "verified_offline": {
     "clean_extraction": "PASS: SHA256 1:1 and 15 tests from extracted ZIP",
     "multi_step_tensor_reward_harness": "PASS (distinct attempts, repeat attenuation, opposite discovery, recovery/strafe exemptions, load monotonicity, command reset)",
     "noneditable_package_install": "PASS: three distributions, version 11.1.0 in separate --target using --no-deps --no-build-isolation",
     "physical_contract_source_parity": "PASS: corrected mass USD, contract, actuator, observations, actions byte-for-byte vs HF1",
-    "pytest_tests_passed": 15,
+    "pytest_tests_passed": 17,
     "python_compileall": "PASS",
+    "reward_manager_signature_validation": "PASS: both v11.1 reward signatures exactly match configured arguments; no **kwargs",
+    "shared_evaluator_cache": "PASS: both reward wrappers reuse the same per-step cached state",
     "static_contract_check": "PASS",
     "zip_integrity": "PASS"
   }

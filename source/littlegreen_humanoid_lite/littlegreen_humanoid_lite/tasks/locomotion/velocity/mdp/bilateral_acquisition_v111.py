@@ -193,9 +193,111 @@ def _evaluate_v111(
     return env._lgh111_cached_result
 
 
-def bilateral_swing_discovery_v111(env,**kwargs)->torch.Tensor:
-    return _evaluate_v111(env,**kwargs)['swing']
 
+def bilateral_swing_discovery_v111(
+    env,
+    command_name: str,
+    sensor_cfg: SceneEntityCfg,
+    asset_cfg: SceneEntityCfg,
+    command_threshold: float = 0.08,
+    clearance_full_m: float = 0.022,
+    rise_full_mps: float = 0.100,
+    forward_full_mps: float = 0.22,
+    max_stance_speed_mps: float = 0.12,
+    attempt_threshold: float = 0.065,
+    rearm_threshold: float = 0.025,
+    rearm_steps: int = 4,
+    attempt_cooldown_s: float = 0.25,
+    individual_bootstrap: float = 0.55,
+    opposite_attempt_bonus: float = 0.45,
+    repeat_decay: float = 0.68,
+    repeat_floor: float = 0.20,
+    recency_decay: float = 0.985,
+    full_tilt_deg: float = 25.0,
+    zero_tilt_deg: float = 55.0,
+    full_height_m: float = 0.400,
+    zero_height_m: float = 0.340,
+) -> torch.Tensor:
+    """Isaac Lab-compatible explicit parameters; no variadic kwargs.
 
-def receiving_foot_load_acceptance_v111(env,**kwargs)->torch.Tensor:
-    return _evaluate_v111(env,**kwargs)['receiver']
+    ManagerBase validates all RewardTermCfg.params against this signature.
+    Both terms call one per-step cached implementation.
+    """
+    return _evaluate_v111(
+        env,
+        command_name=command_name,
+        sensor_cfg=sensor_cfg,
+        asset_cfg=asset_cfg,
+        command_threshold=command_threshold,
+        clearance_full_m=clearance_full_m,
+        rise_full_mps=rise_full_mps,
+        forward_full_mps=forward_full_mps,
+        max_stance_speed_mps=max_stance_speed_mps,
+        attempt_threshold=attempt_threshold,
+        rearm_threshold=rearm_threshold,
+        rearm_steps=rearm_steps,
+        attempt_cooldown_s=attempt_cooldown_s,
+        individual_bootstrap=individual_bootstrap,
+        opposite_attempt_bonus=opposite_attempt_bonus,
+        repeat_decay=repeat_decay,
+        repeat_floor=repeat_floor,
+        recency_decay=recency_decay,
+        full_tilt_deg=full_tilt_deg,
+        zero_tilt_deg=zero_tilt_deg,
+        full_height_m=full_height_m,
+        zero_height_m=zero_height_m,
+    )['swing']
+
+def receiving_foot_load_acceptance_v111(
+    env,
+    command_name: str,
+    sensor_cfg: SceneEntityCfg,
+    asset_cfg: SceneEntityCfg,
+    command_threshold: float = 0.08,
+    clearance_full_m: float = 0.022,
+    rise_full_mps: float = 0.100,
+    forward_full_mps: float = 0.22,
+    max_stance_speed_mps: float = 0.12,
+    attempt_threshold: float = 0.065,
+    rearm_threshold: float = 0.025,
+    rearm_steps: int = 4,
+    attempt_cooldown_s: float = 0.25,
+    individual_bootstrap: float = 0.55,
+    opposite_attempt_bonus: float = 0.45,
+    repeat_decay: float = 0.68,
+    repeat_floor: float = 0.20,
+    recency_decay: float = 0.985,
+    full_tilt_deg: float = 25.0,
+    zero_tilt_deg: float = 55.0,
+    full_height_m: float = 0.400,
+    zero_height_m: float = 0.340,
+) -> torch.Tensor:
+    """Isaac Lab-compatible explicit parameters; no variadic kwargs.
+
+    ManagerBase validates all RewardTermCfg.params against this signature.
+    Both terms call one per-step cached implementation.
+    """
+    return _evaluate_v111(
+        env,
+        command_name=command_name,
+        sensor_cfg=sensor_cfg,
+        asset_cfg=asset_cfg,
+        command_threshold=command_threshold,
+        clearance_full_m=clearance_full_m,
+        rise_full_mps=rise_full_mps,
+        forward_full_mps=forward_full_mps,
+        max_stance_speed_mps=max_stance_speed_mps,
+        attempt_threshold=attempt_threshold,
+        rearm_threshold=rearm_threshold,
+        rearm_steps=rearm_steps,
+        attempt_cooldown_s=attempt_cooldown_s,
+        individual_bootstrap=individual_bootstrap,
+        opposite_attempt_bonus=opposite_attempt_bonus,
+        repeat_decay=repeat_decay,
+        repeat_floor=repeat_floor,
+        recency_decay=recency_decay,
+        full_tilt_deg=full_tilt_deg,
+        zero_tilt_deg=zero_tilt_deg,
+        full_height_m=full_height_m,
+        zero_height_m=zero_height_m,
+    )['receiver']

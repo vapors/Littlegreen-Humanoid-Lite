@@ -134,3 +134,49 @@ def test_load_reward_helpers_are_bounded():
     f=glob['monotone_acceptance_increment']
     assert f(torch.tensor([.5]),torch.tensor([.5]),torch.tensor([.6]),torch.tensor([.6])).item()==0
     assert 0<=f(torch.tensor([.9]),torch.tensor([.9]),torch.tensor([0.]),torch.tensor([0.])).item()<=1
+
+
+def test_isaac_lab_reward_manager_signature_contract():
+    """Both v11.1 RewardTermCfg callables must accept every configured key by name.
+
+    Isaac Lab checks function signatures during manager initialization and does
+    not regard **kwargs as accepting arbitrary RewardTermCfg.params.
+    """
+    import inspect
+    funcs = _code()
+    helper = inspect.signature(funcs['_evaluate_v111'])
+    helper_keys = set(helper.parameters) - {'env'}
+    reward_cfg = ROOT / ('source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/'
+                         'tasks/locomotion/velocity/config/littlegreen_humanoid/'
+                         'rewards/locomotion.py')
+    tree = ast.parse(reward_cfg.read_text())
+    rewards_cls = next(n for n in tree.body if isinstance(n, ast.ClassDef) and
+                       n.name == 'LocomotionRewardsCfg')
+    for term_name, func_name in [('balanced_swing_discovery', 'bilateral_swing_discovery_v111'),
+                                 ('receiving_foot_load_acceptance', 'receiving_foot_load_acceptance_v111')]:
+        term = next(n.value for n in rewards_cls.body if isinstance(n, ast.Assign) and
+                    len(n.targets)==1 and isinstance(n.targets[0],ast.Name) and
+                    n.targets[0].id==term_name)
+        cfg_params = next(k.value for k in term.keywords if k.arg=='params')
+        assert isinstance(cfg_params,ast.Dict)
+        configured = {k.value for k in cfg_params.keys if isinstance(k,ast.Constant)}
+        # **_VIABILITY is the set of 4 additional required keys supplied by the config.
+        assert any(k is None for k in cfg_params.keys)
+        configured.update({'full_tilt_deg','zero_tilt_deg','full_height_m','zero_height_m'})
+        fn_sig=inspect.signature(funcs[func_name])
+        assert all(p.kind not in (inspect.Parameter.VAR_KEYWORD, inspect.Parameter.VAR_POSITIONAL)
+                   for p in fn_sig.parameters.values())
+        expected={p for p in fn_sig.parameters if p!='env'}
+        assert expected == configured == helper_keys, (term_name, configured ^ expected)
+        fn_sig.bind(object(), **{key: 1 for key in configured})
+
+def test_explicit_reward_wrappers_share_per_step_cache():
+    f=_code()
+    env=Env()
+    env.kinematics=_state('left')
+    configured={'command_name':'base_velocity','sensor_cfg':None,'asset_cfg':None}
+    swing=f['bilateral_swing_discovery_v111'](env,**configured)
+    counts=env._lgh111_event_counts.clone()
+    receiver=f['receiving_foot_load_acceptance_v111'](env,**configured)
+    assert swing.shape==receiver.shape==(1,)
+    assert torch.equal(env._lgh111_event_counts,counts)

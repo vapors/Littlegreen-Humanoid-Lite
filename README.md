@@ -166,3 +166,14 @@ Validation here is offline only: the new reward state has been exercised with de
 ## Reference background
 
 The early v6.7–v6.8 experiments established real whole-foot alternation and COM transfer, demonstrating the mechanical possibility of bilateral steps. Later v9.7–v10.2 WORLD-rate/bilateral events were valuable but often gated behind completed motion; v10.3.1 exposed how unilateral partial swing could dominate early reward income. Those prior experiments inform this hypothesis but do not prove that v11.1 will train successfully. Do not use old v10.x checkpoints to resume this changed recipe. Historical source and analyses remain in the separately backed-up archive, not in this clean release.
+
+### HF1 reward-manager initialization compatibility (2026-10-16)
+
+The first v11.1.0 ZIP declared the two new reward functions using `**kwargs`.
+Isaac Lab's RewardManager validates every configured argument against the reward
+callable signature, so this produced `expects mandatory parameters: ['kwargs']`.
+HF1 replaces those two wrappers with explicit named arguments matching the
+`balanced_swing_discovery` and `receiving_foot_load_acceptance` configurations.
+The shared evaluator, all reward weights and all physics/servo contracts are unchanged.
+The offline regression test validates the callable signatures against the actual
+configuration AST. **Isaac Lab GPU runtime must still be retested on the host.**
