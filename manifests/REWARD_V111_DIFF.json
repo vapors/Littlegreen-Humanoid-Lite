@@ -1,38 +1,55 @@
 {
-  "active_terms": 45,
-  "changes": {
-    "balanced_swing_discovery": {
-      "function": "mdp.bilateral_swing_discovery_v111",
-      "new_weight": 1.2,
-      "old_weight": 0.85,
-      "reason": "v11.1 gated discovery/receiving-foot refinement"
-    },
+  "changed_since_v11_1_HF1": {
+    "balanced_swing_discovery": "strict no-contact gate for all new swing credit, counted attempts and paired quality",
     "coherent_swing_rise_velocity": {
-      "function": "mdp.coherent_swing_rise_velocity_v67",
-      "new_weight": 0.65,
-      "old_weight": 1.0,
-      "reason": "reduce unilateral bootstrapping"
+      "after": 0.9,
+      "before": 0.65
     },
-    "receiving_foot_load_acceptance": {
-      "function": "mdp.receiving_foot_load_acceptance_v111",
-      "new_weight": 0.85,
-      "old_weight": null,
-      "reason": "v11.1 gated discovery/receiving-foot refinement"
-    },
+    "receiving_foot_load_acceptance": "unchanged numerical reward; remains contingent on full-foot airborne followed by full plant",
     "track_lin_vel_xy_acquisition": {
-      "function": "mdp.gait_conditioned_track_lin_vel_xy_v67",
-      "new_weight": 0.5,
-      "old_weight": 0.8,
-      "reason": "reduce unilateral bootstrapping"
+      "after": 0.8,
+      "before": 0.5
     },
     "whole_foot_air_time_exploration": {
-      "function": "mdp.whole_foot_air_time_viability_gated_v63",
-      "new_weight": 0.35,
-      "old_weight": 0.5,
-      "reason": "reduce unilateral bootstrapping"
+      "after": 0.45,
+      "before": 0.35
     }
   },
-  "note": "Static AST/source comparison only; runtime reward economics not verified.",
+  "changes": {
+    "balanced_swing_discovery": {
+      "description": "No partial-contact swing credit; full main-and-toe release required",
+      "function": null,
+      "v11_0_weight": 0.85,
+      "v11_1_R2_weight": 1.2
+    },
+    "coherent_swing_rise_velocity": {
+      "description": "Restore viable motion acquisition after 250-iteration review",
+      "function": null,
+      "v11_0_weight": 1.0,
+      "v11_1_R2_weight": 0.9
+    },
+    "receiving_foot_load_acceptance": {
+      "description": "Earned only after whole-foot airborne forward swing and complete-foot replant",
+      "function": null,
+      "v11_0_weight": null,
+      "v11_1_R2_weight": 0.85
+    },
+    "track_lin_vel_xy_acquisition": {
+      "description": "Restore viable motion acquisition after 250-iteration review",
+      "function": null,
+      "v11_0_weight": 0.8,
+      "v11_1_R2_weight": 0.8
+    },
+    "whole_foot_air_time_exploration": {
+      "description": "Restore viable motion acquisition after 250-iteration review",
+      "function": null,
+      "v11_0_weight": 0.5,
+      "v11_1_R2_weight": 0.45
+    }
+  },
+  "constraints": "No geometry, contact detection helper, phase, mass, actuator, joint order, safety, PPO learning hyperparameters, or full-step reward changes",
+  "note": "Static source changes only; no Isaac Lab/GPU learning claims",
+  "recipe_revision": "R2",
   "reference": "v11.0.0 HF1",
-  "unchanged_terms": 40
+  "supersedes": "v11.1.0 HF1 (same semantic version, incompatible reward recipe)"
 }

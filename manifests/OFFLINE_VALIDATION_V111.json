@@ -1,68 +1,34 @@
 {
-  "hotfix": "HF1 reward-term named-parameter signatures",
-  "intentional_reward_changes": {
-    "balanced_swing_discovery": {
-      "function": "mdp.bilateral_swing_discovery_v111",
-      "new_weight": 1.2,
-      "old_weight": 0.85,
-      "reason": "v11.1 gated discovery/receiving-foot refinement"
-    },
-    "coherent_swing_rise_velocity": {
-      "function": "mdp.coherent_swing_rise_velocity_v67",
-      "new_weight": 0.65,
-      "old_weight": 1.0,
-      "reason": "reduce unilateral bootstrapping"
-    },
-    "receiving_foot_load_acceptance": {
-      "function": "mdp.receiving_foot_load_acceptance_v111",
-      "new_weight": 0.85,
-      "old_weight": null,
-      "reason": "v11.1 gated discovery/receiving-foot refinement"
-    },
-    "track_lin_vel_xy_acquisition": {
-      "function": "mdp.gait_conditioned_track_lin_vel_xy_v67",
-      "new_weight": 0.5,
-      "old_weight": 0.8,
-      "reason": "reduce unilateral bootstrapping"
-    },
-    "whole_foot_air_time_exploration": {
-      "function": "mdp.whole_foot_air_time_viability_gated_v63",
-      "new_weight": 0.35,
-      "old_weight": 0.5,
-      "reason": "reduce unilateral bootstrapping"
-    }
+  "change_scope": "strict main+toe whole-airborne gating for new bilateral discovery, restored gait-conditioned velocity/rise/air-time weights, diagnostic expansion",
+  "gated_new_term_details": {
+    "bilateral_swing_discovery": "strict ~k[any_contact] (any_contact = main | toe); blocks all new quality/paired credit/repeat-history/counts during any main/toe contact",
+    "existing_coherent_swing_rise_velocity": "pre-existing physically viable rise precursor intentionally remains available at partial contact; separately gated new terms require full release",
+    "receiving_foot_load_acceptance": "pending armed by true both-airborne forward swing, pays only on later full-foot replant and monotonic load/COM gain"
   },
   "limitations": [
-    "Derived swing quality and receiving-foot acceptance are new experimental rewards; no walking success claimed",
-    "The source-only harness exercises actual Python tensor functions with synthetic kinematics, not PhysX",
-    "The policy runtime contract must preserve zero/unsupported commands; exporter metadata alone does not patch ROS 2",
-    "All-command per-term measured reward contribution remains an analyzer future gate"
+    "Different reward recipe under same version means HF1 checkpoints are INCOMPATIBLE; use fresh R2 run",
+    "Offline tensor unit tests cannot validate PhysX gait progression or simulator reward income",
+    "No unsupervised hardware actuation authorized"
   ],
-  "new_reward_terms": 45,
-  "not_tested": [
-    "Isaac Lab task instantiation and live contact/reward updates",
-    "RSL-RL 1/250/500-step GPU training and learning behavior",
-    "live analyzer from an 11.1 checkpoint",
-    "live ONNX exporter/deployment metadata write",
-    "Python 3.10 editable install on Isaac Sim host",
-    "Track 2 zero-command runtime implementation and physical motion",
-    "Isaac Lab RewardManager task initialization after HF1 (host retest required)"
+  "needs_host": [
+    "Isaac Lab RewardManager initialization with live sensor",
+    "64-env one-iteration smoke",
+    "2048-env 250-iteration fresh training and analyzer",
+    "model_249.pt forced 0.20 and 0.30 play comparison",
+    "export/ONNX and zero-command metadata on host",
+    "real hardware/Track 2 validation"
   ],
+  "passed_offline": {
+    "check_contract": "PASS",
+    "config_manifest_ast": "PASS all 45 active reward terms equal current config AST",
+    "ppo_hyperparameter_parity": "PASS; only experiment folder identity changed",
+    "protected_source_parity": "PASS 8 protected source files byte-identical to v11.1.0 HF1",
+    "python_compile": "PASS source of core/analyzer",
+    "unit_tests": ".....................                                                    [100%]\n21 passed in 2.31s"
+  },
+  "recipe_revision": "R2",
   "release": "11.1.0",
-  "reward_diff_count": 5,
-  "source": "v11.0.0 HF1 full standalone ZIP",
-  "source_sha256": "ad5b7c7a4f88ee0135e55d05665d4a83e486b3f5ee53b026313a641c5d91855a",
-  "status": "PASS_OFFLINE_HF1_HOST_RUNTIME_REQUIRED",
-  "verified_offline": {
-    "clean_extraction": "PASS: SHA256 1:1 and 15 tests from extracted ZIP",
-    "multi_step_tensor_reward_harness": "PASS (distinct attempts, repeat attenuation, opposite discovery, recovery/strafe exemptions, load monotonicity, command reset)",
-    "noneditable_package_install": "PASS: three distributions, version 11.1.0 in separate --target using --no-deps --no-build-isolation",
-    "physical_contract_source_parity": "PASS: corrected mass USD, contract, actuator, observations, actions byte-for-byte vs HF1",
-    "pytest_tests_passed": 17,
-    "python_compileall": "PASS",
-    "reward_manager_signature_validation": "PASS: both v11.1 reward signatures exactly match configured arguments; no **kwargs",
-    "shared_evaluator_cache": "PASS: both reward wrappers reuse the same per-step cached state",
-    "static_contract_check": "PASS",
-    "zip_integrity": "PASS"
-  }
+  "replaces": "v11.1.0 HF1",
+  "source_archive_sha256": "23ef9012bf7c647112a7d21129629aeec6ac26e8f78bc1bf17d64f531e6bf782",
+  "status": "PASS_OFFLINE_HOST_SMOKE_REQUIRED"
 }

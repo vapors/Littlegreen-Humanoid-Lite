@@ -168,6 +168,13 @@ def main():
         v111_receiver_com=torch.zeros(2,device=dev,dtype=torch.float64)
         v111_receiver_completed=torch.zeros(2,device=dev,dtype=torch.float64)
         v111_max_streak=torch.zeros((),device=dev,dtype=torch.float64)
+        # v11.1 R2 exact reward-manager contact gates (current_contact_time based).
+        v111_whole_air_samples=torch.zeros(2,device=dev,dtype=torch.float64)
+        v111_partial_contact_samples=torch.zeros(2,device=dev,dtype=torch.float64)
+        v111_pivot_suppressed_samples=torch.zeros(2,device=dev,dtype=torch.float64)
+        v111_ground_reward_leak_samples=torch.zeros(2,device=dev,dtype=torch.float64)
+        v111_main_contact=torch.zeros(2,device=dev,dtype=torch.float64)
+        v111_toe_contact=torch.zeros(2,device=dev,dtype=torch.float64)
         for step in range(args_cli.steps):
             if force is not None: apply_velocity_command_override(env,force,command_name=args_cli.eval_force_command_name)
             with torch.inference_mode(): act=policy(obs); obs,_,dones,_=vec_env.step(act)[:4]
@@ -175,6 +182,16 @@ def main():
             if hasattr(env, "_lgh111_cached_result"):
                 d111=env._lgh111_cached_result
                 v111_q=d111['quality']
+                airborne111=d111['airborne']
+                v111_whole_air_samples+=airborne111.double().sum(0)
+                v111_partial_contact_samples+=d111['partial_contact'].double().sum(0)
+                v111_pivot_suppressed_samples+=d111['pivot_credit_blocked'].double().sum(0)
+                v111_ground_reward_leak_samples+=((d111['quality']>0)&(~airborne111)).double().sum(0)
+                # This uses the same ContactSensor.current_contact_time source
+                # and L_main,L_toe,R_main,R_toe order as the actual reward.
+                time111=sensor.data.current_contact_time[:,contact_ids]
+                v111_main_contact+=torch.stack((time111[:,0]>0,time111[:,2]>0),1).double().sum(0)
+                v111_toe_contact+=torch.stack((time111[:,1]>0,time111[:,3]>0),1).double().sum(0)
                 v111_quality_sum+=v111_q.double().sum(dim=0)
                 v111_pair_sum+=d111['paired'].double().sum()
                 v111_reward_sum+=d111['swing'].double().sum()
@@ -683,7 +700,7 @@ def main():
             },
             "economics_v111":{
                 "definition":"v11.1 experimental attenuated repeated-side exploration plus post-airborne receiving-foot load/COM acceptance; v10.3.1 original gait-completion/WORLD-rate intact",
-                "weights":{"track_lin_vel_xy_acquisition":0.50,"support_readiness_progress":0.35,"stance_relative_com_drive":0.18,"finite_swing_initiation":1.90,"support_takeover_progress":1.85,"swing_foot_command_velocity":1.85,"balanced_swing_discovery":1.20,"receiving_foot_load_acceptance":0.85,"coherent_swing_rise_velocity":0.65,"whole_foot_air_time_exploration":0.35,"opposite_support_release":1.80,"completed_gait_step":1.85,"bilateral_passage":1.10,"commanded_world_rate":2.00,"yaw_acquisition":0.55},
+                "weights":{"track_lin_vel_xy_acquisition":0.80,"support_readiness_progress":0.35,"stance_relative_com_drive":0.18,"finite_swing_initiation":1.90,"support_takeover_progress":1.85,"swing_foot_command_velocity":1.85,"balanced_swing_discovery":1.20,"receiving_foot_load_acceptance":0.85,"coherent_swing_rise_velocity":0.90,"whole_foot_air_time_exploration":0.45,"opposite_support_release":1.80,"completed_gait_step":1.85,"bilateral_passage":1.10,"commanded_world_rate":2.00,"yaw_acquisition":0.55},
                 "world_rate_bilateral_mix":0.50,
                  "configured_general_ranges":{"lin_vel_x_m_s":[0.12,0.30],"lin_vel_y_m_s":[0.0,0.0],"ang_vel_z_rad_s":[0.0,0.0]},
             },
@@ -747,6 +764,19 @@ def main():
             "receiving_completion_events_left":int(round(_f(v111_receiver_completed[0]))),
             "receiving_completion_events_right":int(round(_f(v111_receiver_completed[1]))),
             "max_consecutive_side_attempts":int(round(_f(v111_max_streak))),
+            "whole_foot_airborne_fraction_left":_f(v111_whole_air_samples[0])/N,
+            "whole_foot_airborne_fraction_right":_f(v111_whole_air_samples[1])/N,
+            "main_contact_fraction_left":_f(v111_main_contact[0])/N,
+            "main_contact_fraction_right":_f(v111_main_contact[1])/N,
+            "toe_contact_fraction_left":_f(v111_toe_contact[0])/N,
+            "toe_contact_fraction_right":_f(v111_toe_contact[1])/N,
+            "partial_heel_or_toe_contact_fraction_left":_f(v111_partial_contact_samples[0])/N,
+            "partial_heel_or_toe_contact_fraction_right":_f(v111_partial_contact_samples[1])/N,
+            "pivot_credit_suppressed_samples_left":int(round(_f(v111_pivot_suppressed_samples[0]))),
+            "pivot_credit_suppressed_samples_right":int(round(_f(v111_pivot_suppressed_samples[1]))),
+            "non_airborne_swing_quality_leak_samples_left":int(round(_f(v111_ground_reward_leak_samples[0]))),
+            "non_airborne_swing_quality_leak_samples_right":int(round(_f(v111_ground_reward_leak_samples[1]))),
+            "gate_definition":"new bilateral discovery requires main AND toe airborne; receiving load pays only AFTER true airborne then full-foot replant",
             "definition": "v11.1 distinct qualified bouts; diminishing same-side credit with recovery/strafe exemptions; receiving-foot reward measured separately",
         }
         # Static configurations alone are insufficient evidence of runtime plant.

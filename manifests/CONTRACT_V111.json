@@ -14,6 +14,7 @@
   "behavioral_baseline": "Velocity-Lilgreen-Locomotion-ST3215-Loaded-v1031",
   "critic_observation_count": 50,
   "effort_limit_nm": 2.94,
+  "experiment_name": "littlegreen_v11_1_0_bilateral_acquisition_r2_fresh",
   "legs_damping": 1.5,
   "legs_stiffness": 18.0,
   "mass_provisional_kg": 3.852,
@@ -23,7 +24,7 @@
   "ppo_value_expressions": {
     "algorithm": "Call(func=Name(id='RslRlPpoAlgorithmCfg', ctx=Load()), keywords=[keyword(arg='value_loss_coef', value=Constant(value=1.0)), keyword(arg='use_clipped_value_loss', value=Constant(value=True)), keyword(arg='clip_param', value=Constant(value=0.2)), keyword(arg='entropy_coef', value=Constant(value=0.006)), keyword(arg='num_learning_epochs', value=Constant(value=5)), keyword(arg='num_mini_batches', value=Constant(value=4)), keyword(arg='learning_rate', value=Constant(value=0.0005)), keyword(arg='schedule', value=Constant(value='fixed')), keyword(arg='gamma', value=Constant(value=0.99)), keyword(arg='lam', value=Constant(value=0.95)), keyword(arg='desired_kl', value=Constant(value=0.015)), keyword(arg='max_grad_norm', value=Constant(value=1.0))])",
     "empirical_normalization": "Constant(value=False)",
-    "experiment_name": "Constant(value='littlegreen_v11_1_0_bilateral_acquisition_fresh')",
+    "experiment_name": "Constant(value='littlegreen_v11_1_0_bilateral_acquisition_r2_fresh')",
     "max_iterations": "Constant(value=4000)",
     "num_steps_per_env": "Constant(value=48)",
     "policy": "Call(func=Name(id='RslRlPpoActorCriticCfg', ctx=Load()), keywords=[keyword(arg='init_noise_std', value=Constant(value=0.8)), keyword(arg='actor_hidden_dims', value=List(elts=[Constant(value=256), Constant(value=128), Constant(value=128)], ctx=Load())), keyword(arg='critic_hidden_dims', value=List(elts=[Constant(value=256), Constant(value=128), Constant(value=128)], ctx=Load())), keyword(arg='activation', value=Constant(value='elu'))])",
@@ -31,7 +32,8 @@
     "run_name": "Constant(value='')",
     "save_interval": "Constant(value=250)"
   },
-  "recipe_lineage": "Explicit v11.1 reward experiment; v11.0 physical/action/observation/PPO contract unchanged",
+  "recipe_lineage": "v11.1.0 R2 supersedes original v11.1/HF1; train FRESH: reward arithmetic changed, no checkpoint reuse",
+  "recipe_revision": "R2: strict main-and-toe airborne swing discovery; restored movement incentives",
   "release_version": "11.1.0",
   "reward_terms": {
     "action_rate_l2": {
@@ -60,9 +62,9 @@
       "weight": 1.1
     },
     "coherent_swing_rise_velocity": {
-      "expression_ast": "Call(func=Name(id='RewTerm', ctx=Load()), keywords=[keyword(arg='func', value=Attribute(value=Name(id='mdp', ctx=Load()), attr='coherent_swing_rise_velocity_v67', ctx=Load())), keyword(arg='params', value=Dict(keys=[Constant(value='command_name'), Constant(value='sensor_cfg'), Constant(value='asset_cfg'), Constant(value='command_threshold'), Constant(value='max_swing_load_share'), Constant(value='min_stance_load_share'), Constant(value='onset_speed_mps'), Constant(value='full_speed_mps'), Constant(value='full_clearance_m'), None], values=[Constant(value='base_velocity'), Call(func=Name(id='_whole', ctx=Load()), args=[Constant(value='contact_forces')]), Call(func=Name(id='_whole', ctx=Load()), args=[Constant(value='robot')]), Constant(value=0.08), Constant(value=0.45), Constant(value=0.55), Constant(value=0.015), Constant(value=0.15), Constant(value=0.04), Name(id='_VIABILITY', ctx=Load())])), keyword(arg='weight', value=Constant(value=0.65))])",
+      "expression_ast": "Call(func=Name(id='RewTerm', ctx=Load()), keywords=[keyword(arg='func', value=Attribute(value=Name(id='mdp', ctx=Load()), attr='coherent_swing_rise_velocity_v67', ctx=Load())), keyword(arg='params', value=Dict(keys=[Constant(value='command_name'), Constant(value='sensor_cfg'), Constant(value='asset_cfg'), Constant(value='command_threshold'), Constant(value='max_swing_load_share'), Constant(value='min_stance_load_share'), Constant(value='onset_speed_mps'), Constant(value='full_speed_mps'), Constant(value='full_clearance_m'), None], values=[Constant(value='base_velocity'), Call(func=Name(id='_whole', ctx=Load()), args=[Constant(value='contact_forces')]), Call(func=Name(id='_whole', ctx=Load()), args=[Constant(value='robot')]), Constant(value=0.08), Constant(value=0.45), Constant(value=0.55), Constant(value=0.015), Constant(value=0.15), Constant(value=0.04), Name(id='_VIABILITY', ctx=Load())])), keyword(arg='weight', value=Constant(value=0.9))])",
       "function_expression": "mdp.coherent_swing_rise_velocity_v67",
-      "weight": 0.65
+      "weight": 0.9
     },
     "commanded_world_rate_dense_step_support": {
       "expression_ast": "Call(func=Name(id='RewTerm', ctx=Load()), keywords=[keyword(arg='func', value=Attribute(value=Name(id='mdp', ctx=Load()), attr='dense_step_support_bilateral_commanded_world_rate_v101', ctx=Load())), keyword(arg='params', value=Dict(keys=[None, Constant(value='command_threshold'), Constant(value='neutral_rate_ratio'), Constant(value='rate_softness_ratio'), Constant(value='bilateral_mix'), Constant(value='event_hold_s'), Constant(value='command_change_linear_mps'), Constant(value='command_change_yaw_rps'), None], values=[Name(id='_GAIT_ROUTING', ctx=Load()), Constant(value=0.08), Constant(value=0.2), Constant(value=0.12), Constant(value=0.5), Constant(value=0.06), Constant(value=0.015), Constant(value=0.02), Name(id='_VIABILITY', ctx=Load())])), keyword(arg='weight', value=Constant(value=2.0))])",
@@ -244,9 +246,9 @@
       "weight": 0.55
     },
     "track_lin_vel_xy_acquisition": {
-      "expression_ast": "Call(func=Name(id='RewTerm', ctx=Load()), keywords=[keyword(arg='func', value=Attribute(value=Name(id='mdp', ctx=Load()), attr='gait_conditioned_track_lin_vel_xy_v67', ctx=Load())), keyword(arg='params', value=Dict(keys=[Constant(value='command_name'), Constant(value='sensor_cfg'), Constant(value='asset_cfg'), Constant(value='std'), Constant(value='command_threshold'), Constant(value='minimum_credit'), Constant(value='full_clearance_m'), Constant(value='clearance_credit'), Constant(value='single_support_credit'), Constant(value='load_asymmetry_credit'), None], values=[Constant(value='base_velocity'), Call(func=Name(id='_whole', ctx=Load()), args=[Constant(value='contact_forces')]), Call(func=Name(id='_whole', ctx=Load()), args=[Constant(value='robot')]), Constant(value=0.5), Constant(value=0.08), Constant(value=0.22), Constant(value=0.04), Constant(value=0.48), Constant(value=0.2), Constant(value=0.1), Name(id='_VIABILITY', ctx=Load())])), keyword(arg='weight', value=Constant(value=0.5))])",
+      "expression_ast": "Call(func=Name(id='RewTerm', ctx=Load()), keywords=[keyword(arg='func', value=Attribute(value=Name(id='mdp', ctx=Load()), attr='gait_conditioned_track_lin_vel_xy_v67', ctx=Load())), keyword(arg='params', value=Dict(keys=[Constant(value='command_name'), Constant(value='sensor_cfg'), Constant(value='asset_cfg'), Constant(value='std'), Constant(value='command_threshold'), Constant(value='minimum_credit'), Constant(value='full_clearance_m'), Constant(value='clearance_credit'), Constant(value='single_support_credit'), Constant(value='load_asymmetry_credit'), None], values=[Constant(value='base_velocity'), Call(func=Name(id='_whole', ctx=Load()), args=[Constant(value='contact_forces')]), Call(func=Name(id='_whole', ctx=Load()), args=[Constant(value='robot')]), Constant(value=0.5), Constant(value=0.08), Constant(value=0.22), Constant(value=0.04), Constant(value=0.48), Constant(value=0.2), Constant(value=0.1), Name(id='_VIABILITY', ctx=Load())])), keyword(arg='weight', value=Constant(value=0.8))])",
       "function_expression": "mdp.gait_conditioned_track_lin_vel_xy_v67",
-      "weight": 0.5
+      "weight": 0.8
     },
     "undesired_contacts": {
       "expression_ast": "Call(func=Name(id='RewTerm', ctx=Load()), keywords=[keyword(arg='func', value=Attribute(value=Name(id='mdp', ctx=Load()), attr='undesired_contacts', ctx=Load())), keyword(arg='params', value=Dict(keys=[Constant(value='sensor_cfg'), Constant(value='threshold')], values=[Call(func=Name(id='SceneEntityCfg', ctx=Load()), args=[Constant(value='contact_forces')], keywords=[keyword(arg='body_names', value=List(elts=[Constant(value='base'), Constant(value='.*_hip_.*'), Constant(value='.*_knee_.*')], ctx=Load()))]), Constant(value=1.0)])), keyword(arg='weight', value=UnaryOp(op=USub(), operand=Constant(value=1.0)))])",
@@ -254,9 +256,9 @@
       "weight": -1.0
     },
     "whole_foot_air_time_exploration": {
-      "expression_ast": "Call(func=Name(id='RewTerm', ctx=Load()), keywords=[keyword(arg='func', value=Attribute(value=Name(id='mdp', ctx=Load()), attr='whole_foot_air_time_viability_gated_v63', ctx=Load())), keyword(arg='params', value=Dict(keys=[Constant(value='command_name'), Constant(value='sensor_cfg'), Constant(value='asset_cfg'), Constant(value='threshold'), Constant(value='full_clearance_m'), Constant(value='command_threshold'), Constant(value='full_credit_until_s'), Constant(value='fade_out_end_s'), Constant(value='bodies_per_foot'), None], values=[Constant(value='base_velocity'), Call(func=Name(id='_whole', ctx=Load()), args=[Constant(value='contact_forces')]), Call(func=Name(id='_whole', ctx=Load()), args=[Constant(value='robot')]), Constant(value=0.18), Constant(value=0.04), Constant(value=0.08), Constant(value=0.25), Constant(value=0.42), Constant(value=2), Name(id='_VIABILITY', ctx=Load())])), keyword(arg='weight', value=Constant(value=0.35))])",
+      "expression_ast": "Call(func=Name(id='RewTerm', ctx=Load()), keywords=[keyword(arg='func', value=Attribute(value=Name(id='mdp', ctx=Load()), attr='whole_foot_air_time_viability_gated_v63', ctx=Load())), keyword(arg='params', value=Dict(keys=[Constant(value='command_name'), Constant(value='sensor_cfg'), Constant(value='asset_cfg'), Constant(value='threshold'), Constant(value='full_clearance_m'), Constant(value='command_threshold'), Constant(value='full_credit_until_s'), Constant(value='fade_out_end_s'), Constant(value='bodies_per_foot'), None], values=[Constant(value='base_velocity'), Call(func=Name(id='_whole', ctx=Load()), args=[Constant(value='contact_forces')]), Call(func=Name(id='_whole', ctx=Load()), args=[Constant(value='robot')]), Constant(value=0.18), Constant(value=0.04), Constant(value=0.08), Constant(value=0.25), Constant(value=0.42), Constant(value=2), Name(id='_VIABILITY', ctx=Load())])), keyword(arg='weight', value=Constant(value=0.45))])",
       "function_expression": "mdp.whole_foot_air_time_viability_gated_v63",
-      "weight": 0.35
+      "weight": 0.45
     }
   },
   "source_release": "11.0.0",

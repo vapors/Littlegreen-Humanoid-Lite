@@ -123,7 +123,7 @@ class LocomotionRewardsCfg:
                 "clearance_credit": 0.48, "single_support_credit": 0.20,
                 "load_asymmetry_credit": 0.10, **_VIABILITY,
             },
-            weight=0.50,  # was 1.20; reduce success from one-legged speed/rocking
+            weight=0.80,  # restore v11.0 velocity incentive; gait/viability gate remains
         )
     track_ang_vel_z_acquisition = RewTerm(
         func=mdp.track_ang_vel_z_acquisition_v63,
@@ -181,7 +181,7 @@ class LocomotionRewardsCfg:
             "onset_speed_mps": 0.015, "full_speed_mps": 0.15,
             "full_clearance_m": 0.040, **_VIABILITY,
         },
-        weight=0.65,
+        weight=0.90,
     )
 
     # v6.8 directional on-ramp, now frame-corrected and explicitly whole-foot
@@ -314,7 +314,7 @@ class LocomotionRewardsCfg:
             "command_threshold": 0.08, "full_credit_until_s": 0.25, "fade_out_end_s": 0.42,
             "bodies_per_foot": 2, **_VIABILITY,
         },
-        weight=0.35,
+        weight=0.45,
     )
 
     prolonged_single_support = RewTerm(
@@ -417,7 +417,7 @@ class LocomotionRewardsCfg:
         weight=-0.08,
     )
 
-    # v11.1: quality-triggered swing bouts; repeated same-side bouts have diminishing
+    # v11.1 R2: only main+toe fully airborne quality-triggered swing bouts; repeated same-side bouts have diminishing
     # value except for recovery and lateral/strafe commands. No prescribed gait phase.
     balanced_swing_discovery = RewTerm(
         func=mdp.bilateral_swing_discovery_v111,

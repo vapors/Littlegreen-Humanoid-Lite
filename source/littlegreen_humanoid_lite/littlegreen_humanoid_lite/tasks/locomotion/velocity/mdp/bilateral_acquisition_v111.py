@@ -87,14 +87,23 @@ def _evaluate_v111(
     unload = ((0.55-k['load_share'])/0.35).clamp(0.0,1.0)
     foot_speed = torch.linalg.vector_norm(stance_vel,dim=-1)
     anchor = (1.0-foot_speed/max_stance_speed_mps).clamp(0.0,1.0)
+    # IMPORTANT: any_contact is (main_contact OR toe_contact) for each foot.
+    # Negation therefore requires BOTH physical main and toe contact to be gone.
+    # Soft precursor kinematics are still computed for diagnostics, but must
+    # never pay bilateral discovery or arm an attempt during toe/heel pivoting.
     airborne = ~k['any_contact']
+    partial_contact = k['any_contact'] & (~k['full_plant'])
     precursor = 0.25*rise + 0.20*clear + 0.55*forward*clear*(0.25+0.75*airborne.float())
     # Both main and toe should be planted on the current *other* side.
     other_planted=k['full_plant'][:,other] & (k['load_share'][:,other] >= 0.54)
     moving=k['command_norm']>command_threshold
     directional=((along+0.010)/0.075).clamp(0.0,1.0)
-    quality=(unload*precursor*directional*other_planted.float()*anchor*
-             k['viability'][:,None]*moving[:,None].float()).clamp(0,1)
+    ungated_quality=(unload*precursor*directional*other_planted.float()*anchor*
+                     k['viability'][:,None]*moving[:,None].float()).clamp(0,1)
+    # Do not credit an airborne 'attempt' while even one foot component is
+    # in contact. This includes the dense bootstrap term, event counts,
+    # recent bilateral quality, opposite-side bonus, and repeat history.
+    quality=ungated_quality*airborne.float()
 
     recent=state('recent',zeros())
     recent=torch.maximum(recent*recency_decay,quality)
@@ -182,7 +191,10 @@ def _evaluate_v111(
 
     output={
         'swing':swing_reward,'receiver':receiver_reward,
-        'quality':quality,'paired':paired,'events':side_event,
+        'quality':quality,'ungated_quality':ungated_quality,
+        'airborne':airborne,'partial_contact':partial_contact,
+        'pivot_credit_blocked':partial_contact & (ungated_quality>0),
+        'paired':paired,'events':side_event,
         'side_credit':effective_credit,'repeat_streak':streak,'recovery_exempt':recovery,
         'strafe_exempt':strafe,'receiver_load_delta':load_delta,
         'receiver_com_delta':com_delta,'receiver_progress':progress,'receiver_complete':completed,

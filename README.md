@@ -1,4 +1,6 @@
-# LittleGreen Humanoid Lite — Track 1 v11.1.0 Bilateral Gait Acquisition
+# LittleGreen Humanoid Lite — Track 1 v11.1.0 Bilateral Gait Acquisition (replacement R2)
+
+**Replacement notice:** This **R2** source supersedes both earlier v11.1.0 and v11.1.0 HF1 packages **without changing the semantic version, Gym task ID, or action/observation contract**. The reward recipe has changed; train **fresh** and do not resume or replay an old v11.1 checkpoint as though it belongs to R2. The R2 experiment directory and run-source fingerprints are distinct, so validated same-R2 continuation remains supported. Keep previous archives solely for provenance.
 
 **Purpose:** an experimental **reward-model revision** built on the host-qualified execution path of v11.0.0 HF1. The new release does **not** claim that the robot walks; we are specifically addressing the v11.0 unilateral left-foot lift/right-stance exploit. It is NOT a behavior-preserving refactor; new training must start fresh. Track 2 ROS 2 hardware is untouched and autonomous hardware walking is not authorized.
 
@@ -6,19 +8,21 @@
 
 The mass-corrected USD (provisional 3.852 kg), 12 hardware joint order/limits/residual scales, actuator Stage-A and loaded response profiles, free root, k=18.0/d=1.5 implicit PD, 2.94 Nm effort cap, physics `dt=0.005`, decimation 4, actor 47-D/critic 50-D, previous bounded normalized action observation, neutral-static phase, and PPO numerical recipe are unchanged from v11.0 HF1. The PPO experiment identity changes to prevent accidental cross-version resume. Fresh start: **do not** load v10.x or v11.0 checkpoints/normalizers into v11.1. Same-run v11.1 resume remains guarded by the run source/contract hashes.
 
-**Five deliberate reward-config changes** (all other v11.0 reward terms and numerical parameters unchanged):
+**Five deliberately changed rewards relative to v11.0** (three restored motion weights compared with the previous v11.1 HF1; all other original rewards unchanged):
 
 | Reward | v11.0 HF1 | v11.1.0 | Reason |
 |---|---:|---:|---|
-| `track_lin_vel_xy_acquisition` | +0.80 | **+0.50** | Less income for non-step forward rocking |
-| `coherent_swing_rise_velocity` | +1.00 | **+0.65** | Repeated partial foot lifts less dominant |
-| `whole_foot_air_time_exploration` | +0.50 | **+0.35** | Reduce same-side hover/air-time farming |
-| `balanced_swing_discovery` | +0.85 | **+1.20** | New side-aware qualified-bout reward, with distinct attempts rather than per-frame repetition |
+| `track_lin_vel_xy_acquisition` | +0.80 | **+0.80** | Restore the original gait-conditioned velocity tracking credit |
+| `coherent_swing_rise_velocity` | +1.00 | **+0.90** | Restore much of the incentive to begin coherent main+toe lifting |
+| `whole_foot_air_time_exploration` | +0.50 | **+0.45** | Restore viable genuine air time while retaining modest reduction |
+| `balanced_swing_discovery` | +0.85 | **+1.20** | No reward until the moving foot has **both main and toe off the ground**; same-leg repeat attenuation retained |
 | `receiving_foot_load_acceptance` | absent | **+0.85** | New progress-after-replant reward toward the next support handoff |
+
+**Bilateral exploration logic:** new discovery quality and counted attempts are now *zero* whenever either the candidate main or toe remains in contact. This specifically blocks rewarding heel-pivots and toe-pivots even when rise, clearance, and motion are favorable. The older coherent-swing-rise reward remains an intentionally softer movement initiation incentive, but the **new bilateral discovery** is never earned from partial contact. All tests use the original ContactSensor current contact-time definitions.
 
 **Bilateral exploration logic:** same physical-foot kinematics and viability gates as v10.3.1; a new distinct attempt requires quality >0.065, whole-foot clearance >4 mm, 4 below-threshold rearm frames and at least 0.25 s between credited onsets. Consecutive attempts on the *same* side receive discovery multipliers 1.0, 0.68, 0.462, then down to a floor of 0.20; a qualified opposite-side attempt after two or more repeated bouts may receive up to a +45% bounded discovery multiplier. **This only attenuates the new bootstrap exploration term; it does not penalize actual physical recovery steps, nor alter the existing completed-step and WORLD-rate terms.** Recovery (tilt plus angular motion or significant tilt) and clearly commanded lateral/strafe steps bypass repetition attenuation; they do not create free reward income. No imposed gait phase or scripted target joint motion.
 
-**Receiving-foot acceptance:** when a swing foot has been completely airborne (main + toe), moved meaningfully along the commanded WORLD direction, and the other foot was fully planted, a short (<=0.90 s) reward window is armed. Only later replant with main + toe contact and viable anchored support earns *incremental increases* in the receiving foot's normalized load share and COM closeness. Each increment is measured above its prior maximum. Static holding or repeatedly unloading/reloading to the same peak cannot farm this term. Confirmed support handoffs, bilateral passage, and signed WORLD-rate rewards remain unchanged.
+**Receiving-foot acceptance:** this second new reward can pay **only after** both main+toe were airborne during the qualifying forward swing **and** they subsequently replant together and begin taking increasing weight; by its nature the payout occurs after contact, not while airborne. That is a genuine takeover event, not an exception for toe-pivots. When a swing foot has been completely airborne (main + toe), moved meaningfully along the commanded WORLD direction, and the other foot was fully planted, a short (<=0.90 s) reward window is armed. Only later replant with main + toe contact and viable anchored support earns *incremental increases* in the receiving foot's normalized load share and COM closeness. Each increment is measured above its prior maximum. Static holding or repeatedly unloading/reloading to the same peak cannot farm this term. Confirmed support handoffs, bilateral passage, and signed WORLD-rate rewards remain unchanged.
 
 ## Installation — unpack as a new source checkout
 
@@ -45,13 +49,13 @@ python scripts/rsl_rl/preflight.py \
 python scripts/rsl_rl/train_eval.py \
   --task Velocity-Lilgreen-Locomotion-ST3215-Loaded-v111 \
   --num_envs 64 --max_iterations 1 --seed 113 \
-  --run_name v111_smoke --headless
+  --run_name v111_r2_smoke --headless
 
 # First baseline qualification, fresh from random policy weights
 python scripts/rsl_rl/train_eval.py \
   --task Velocity-Lilgreen-Locomotion-ST3215-Loaded-v111 \
   --num_envs 2048 --max_iterations 250 --seed 113 \
-  --run_name v111_bilateral_seed113 --headless
+  --run_name v111_r2_bilateral_seed113 --headless
 ```
 
 The PPO config has `save_interval=250`, maximum 4,000 iterations by default, exploration noise std=0.80, 48 steps/environment, lr=5e-4 and 256/128/128 MLP. Inspect checkpoint filenames in the actual run directory (the previous 250-iteration run produced `model_249.pt`). If 250-step bilateral diagnostics improve, use a **verified same-run resume** to 500–1,000 total iterations or start a separately named longer fresh run. RSL-RL's `--max_iterations` resume meaning may depend on the installed version; check your runner logs before scheduling continuation.
@@ -75,6 +79,8 @@ python scripts/rsl_rl/export_policy_littlegreen.py \
 ```
 
 Run `analyze_policy.py` with `--eval_force_command 0.30 0.0 0.0` for the second trained-speed probe. `0.40` and `0.60` are **out of the trained forward range** and should be labeled stress probes, never interpreted as trained velocity tracking. Keep the analyzer's standing probe enabled and force-command results separate.
+
+**New R2 contact diagnostics:** `main_contact_fraction_left/right`, `toe_contact_fraction_left/right`, `whole_foot_airborne_fraction_left/right`, partial main/toe contact fraction, `pivot_credit_suppressed_samples_left/right`, and non-airborne new-reward leakage counts (expected **zero**). Unlike the legacy analyzer force-threshold metrics, these read `ContactSensor.current_contact_time` consistent with the new reward. They are reported for the forced-motion rollout, not the separately executed standing probe.
 
 **New analyzer block `bilateral_acquisition_v111`:** qualified attempt counts per side (event onsets, not airborne frame count), mean per-side swing quality, mean credit multiplier, bilateral recent quality, repeated-attempt streak maximum, recovery/strafe exception occupancy, receiving-foot load/COM increments and completion events by side, actual new-term per-step weighted contributions before time-step integration. Historical counters for main/toe release, load share, coherent rise, landing progress, confirmed steps, support baton, WORLD-rate events and joint torque are retained. Full measured contribution accounting for **every** existing reward remains a future host test; do not infer those values from configured weights alone.
 
@@ -100,7 +106,7 @@ These semantics are encoded in `policy.yaml` and `deployment_contract.yaml`, not
 | 1,000–2,000 | Repeatable both-leg whole-foot lift/replant, positive stance-relative forward landing, bilateral WORLD-frame progress |
 | All checkpoints | 47-D obs, 12-D action contract parity; corrected mass/PD/torque; keep right-ankle saturation visible |
 
-Do **not** claim walking acquisition from total reward, isolated left-foot lift, or an unqualified pose. If 250 iterations show no right-foot exploration, stop to examine the new reward gates before a long run.
+Do **not** claim walking acquisition from total reward, isolated left-foot lift, or an unqualified pose. At 250 iterations we expect stochastic exploration and may observe falls or inefficient movements; those are not themselves evidence of failure. Check *full-airborne* attempt counts, attempts rejected for partial main/toe contact, left/right load transfer, and per-term reward income. If 250 iterations show no right-foot exploration, stop to examine the new reward gates before a long run. Termination penalty remains -2.5 to prevent rewarding falls; PPO noise std remains 0.80, and the higher motion weights are the intended exploration change.
 
 ## Release provenance and limitations
 
@@ -122,7 +128,7 @@ Validation here is offline only: the new reward state has been exercised with de
 | `balanced_swing_discovery` | 1.2 | `mdp.bilateral_swing_discovery_v111` |
 | `base_com_height_deficit` | -0.4 | `mdp.base_com_height_deficit_v63` |
 | `bilateral_passage_dense_step_support` | 1.1 | `mdp.dense_step_support_bilateral_passage_v98` |
-| `coherent_swing_rise_velocity` | 0.65 | `mdp.coherent_swing_rise_velocity_v67` |
+| `coherent_swing_rise_velocity` | 0.9 | `mdp.coherent_swing_rise_velocity_v67` |
 | `commanded_world_rate_dense_step_support` | 2 | `mdp.dense_step_support_bilateral_commanded_world_rate_v101` |
 | `completed_gait_step` | 1.85 | `mdp.completed_gait_step_retention_v95` |
 | `dof_acc_l2` | -1e-07 | `mdp.joint_acc_l2` |
@@ -159,9 +165,9 @@ Validation here is offline only: the new reward state has been exercised with de
 | `takeover_failure` | -0.35 | `mdp.takeover_failure_event_v66` |
 | `termination_penalty` | -2.5 | `mdp.is_terminated` |
 | `track_ang_vel_z_acquisition` | 0.55 | `mdp.track_ang_vel_z_acquisition_v63` |
-| `track_lin_vel_xy_acquisition` | 0.5 | `mdp.gait_conditioned_track_lin_vel_xy_v67` |
+| `track_lin_vel_xy_acquisition` | 0.8 | `mdp.gait_conditioned_track_lin_vel_xy_v67` |
 | `undesired_contacts` | -1 | `mdp.undesired_contacts` |
-| `whole_foot_air_time_exploration` | 0.35 | `mdp.whole_foot_air_time_viability_gated_v63` |
+| `whole_foot_air_time_exploration` | 0.45 | `mdp.whole_foot_air_time_viability_gated_v63` |
 
 ## Reference background
 
@@ -177,3 +183,10 @@ HF1 replaces those two wrappers with explicit named arguments matching the
 The shared evaluator, all reward weights and all physics/servo contracts are unchanged.
 The offline regression test validates the callable signatures against the actual
 configuration AST. **Isaac Lab GPU runtime must still be retested on the host.**
+
+### Replacement R2 notes (same v11.1.0 version)
+
+- Prior 250-iteration HF1 run is **reference only**, not a warm start, replay target, or resume source for R2.
+- Source and config contract hashes prohibit using previous checkpoints as verified same-experiment continuations. The PPO experiment name is now `littlegreen_v11_1_0_bilateral_acquisition_r2_fresh`.
+- No numeric PPO policy-noise, curriculum, terminal-cost, physical calibration, command distribution, zero-command export, or gait-completion changes.
+- The first smoke test must succeed on the Isaac Lab host before a new 250-iteration qualification. Pure-tensor testing cannot verify live contact sensor timing or the magnitude of actual reward income.

@@ -13,7 +13,7 @@ class LittlegreenLocomotionPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     num_steps_per_env = 48
     max_iterations = 4000
     save_interval = 250
-    experiment_name = "littlegreen_v11_1_0_bilateral_acquisition_fresh"
+    experiment_name = "littlegreen_v11_1_0_bilateral_acquisition_r2_fresh"
     run_name = ""
     resume = False
     empirical_normalization = False

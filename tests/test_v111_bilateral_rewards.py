@@ -25,7 +25,7 @@ def _code():
 
 
 def _state(side='left', forward=0.22, vx=0.20, planted=False,
-           receiving_load=None, receiving_closeness=None, recovery=False, strafe=False):
+           receiving_load=None, receiving_closeness=None, recovery=False, strafe=False, contact_mode=None):
     # Ordered [left,right]. Opposite side full-foot planted while chosen leg swings.
     swing=0 if side=='left' else 1
     load=[0.12,0.88] if swing==0 else [0.88,0.12]
@@ -40,6 +40,15 @@ def _state(side='left', forward=0.22, vx=0.20, planted=False,
         contact=[True,True];load=[receiving_load,1-receiving_load]
         closeness=[receiving_closeness,1-receiving_closeness]
         clear=[0.,0.];rise=[0.,0.];vel=[[0.,0.],[0.,0.]]
+    # Distinguish contact from kinematic clearance: a toe/heel pivot can have
+    # positive rise, clearance and forward motion while one component is down.
+    if contact_mode in ('main_only','toe_only'):
+        contact[swing]=True
+    if contact_mode in ('main_only','toe_only'):
+        planted_part = contact.copy()
+        planted_part[swing]=False
+    else:
+        planted_part = contact.copy()
     if strafe:
         command=[0.0,0.20,0.0];direction=[0.,1.]
         if not planted and receiving_load is None:
@@ -47,7 +56,7 @@ def _state(side='left', forward=0.22, vx=0.20, planted=False,
     else:
         command=[vx,0.,0.];direction=[1.,0.]
     return {'load_share':torch.tensor([load]),'any_contact':torch.tensor([contact]),
-            'full_plant':torch.tensor([contact]),
+            'full_plant':torch.tensor([planted_part]),
             'whole_clear':torch.tensor([clear]),'coherent_rise':torch.tensor([rise]),
             'center_vel':torch.tensor([vel]),'closeness':torch.tensor([closeness]),
             'viability':torch.tensor([1.]),
@@ -180,3 +189,61 @@ def test_explicit_reward_wrappers_share_per_step_cache():
     receiver=f['receiving_foot_load_acceptance_v111'](env,**configured)
     assert swing.shape==receiver.shape==(1,)
     assert torch.equal(env._lgh111_event_counts,counts)
+
+
+def test_partial_contact_never_pays_new_bilateral_reward():
+    for side in ('left','right'):
+        for mode in ('main_only','toe_only'):
+            env=Env()
+            result=env.step(_state(side,contact_mode=mode))
+            i=0 if side=='left' else 1
+            assert result['ungated_quality'][0,i] > 0.0, (side,mode)
+            assert result['partial_contact'][0,i].item(), (side,mode)
+            assert not result['airborne'][0,i].item(), (side,mode)
+            assert result['quality'].abs().max().item()==0.0
+            assert result['swing'].item()==0.0
+            assert result['events'].sum().item()==0
+            assert result['paired'].item()==0.0
+            assert result['receiver'].item()==0.0
+            assert env._lgh111_event_counts.sum().item()==0
+            assert env._lgh111_recent.abs().max().item()==0.0
+
+def test_full_main_toe_release_is_required_before_receiver_arm():
+    for mode in ('main_only','toe_only'):
+        env=Env()
+        env.step(_state('left',contact_mode=mode))
+        replanted=env.step(_state(receiving_load=.50,receiving_closeness=.58))
+        assert replanted['receiver'].item()==0.0
+        assert not replanted['receiver_pending'].any().item()
+    env=Env()
+    air=env.step(_state('left'))
+    assert air['airborne'][0,0].item()
+    assert air['events'][0,0].item()
+    partial_replant=env.step(_state(receiving_load=.35,receiving_closeness=.48,contact_mode='toe_only'))
+    assert partial_replant['receiver'].item()==0.0
+    qualified=env.step(_state(receiving_load=.40,receiving_closeness=.52))
+    assert qualified['receiver'].item()>0.0
+
+def test_full_air_swing_still_pays_and_repeat_penalty_stays():
+    env=Env()
+    full=env.step(_state('right'))
+    assert full['airborne'][0,1].item()
+    assert full['events'][0,1].item()
+    assert full['swing'].item()>0.0
+    for _ in range(16):env.step(_state(planted=True))
+    repeated=env.step(_state('right'))
+    assert repeated['side_credit'][0,1].item()<1.0
+
+def test_reward_weights_restored_without_changing_gait_gates():
+    reward_cfg=ROOT / 'source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/config/littlegreen_humanoid/rewards/locomotion.py'
+    node=next(n for n in ast.parse(reward_cfg.read_text()).body if isinstance(n,ast.ClassDef) and n.name=='LocomotionRewardsCfg')
+    expected={'track_lin_vel_xy_acquisition':.80,'coherent_swing_rise_velocity':.90,
+              'whole_foot_air_time_exploration':.45,'balanced_swing_discovery':1.2,'receiving_foot_load_acceptance':.85}
+    for n in node.body:
+        if not isinstance(n,ast.Assign) or not isinstance(n.targets[0],ast.Name):continue
+        key=n.targets[0].id
+        if key in expected:
+            wt=next(v.value for v in n.value.keywords if v.arg=='weight')
+            assert abs(ast.literal_eval(wt)-expected[key])<1e-8
+            del expected[key]
+    assert not expected
