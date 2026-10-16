@@ -1,7 +1,7 @@
 """Canonical task registry: validated source implementation only. Future skills are planned, not registered."""
 import gymnasium as gym
 
-TASK_ID = "Velocity-Lilgreen-Locomotion-ST3215-Loaded-v110"
+TASK_ID = "Velocity-Lilgreen-Locomotion-ST3215-Loaded-v111"
 gym.register(
     id=TASK_ID,
     entry_point="isaaclab.envs:ManagerBasedRLEnv",

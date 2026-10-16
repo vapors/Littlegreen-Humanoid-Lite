@@ -1,0 +1,38 @@
+{
+  "active_terms": 45,
+  "changes": {
+    "balanced_swing_discovery": {
+      "function": "mdp.bilateral_swing_discovery_v111",
+      "new_weight": 1.2,
+      "old_weight": 0.85,
+      "reason": "v11.1 gated discovery/receiving-foot refinement"
+    },
+    "coherent_swing_rise_velocity": {
+      "function": "mdp.coherent_swing_rise_velocity_v67",
+      "new_weight": 0.65,
+      "old_weight": 1.0,
+      "reason": "reduce unilateral bootstrapping"
+    },
+    "receiving_foot_load_acceptance": {
+      "function": "mdp.receiving_foot_load_acceptance_v111",
+      "new_weight": 0.85,
+      "old_weight": null,
+      "reason": "v11.1 gated discovery/receiving-foot refinement"
+    },
+    "track_lin_vel_xy_acquisition": {
+      "function": "mdp.gait_conditioned_track_lin_vel_xy_v67",
+      "new_weight": 0.5,
+      "old_weight": 0.8,
+      "reason": "reduce unilateral bootstrapping"
+    },
+    "whole_foot_air_time_exploration": {
+      "function": "mdp.whole_foot_air_time_viability_gated_v63",
+      "new_weight": 0.35,
+      "old_weight": 0.5,
+      "reason": "reduce unilateral bootstrapping"
+    }
+  },
+  "note": "Static AST/source comparison only; runtime reward economics not verified.",
+  "reference": "v11.0.0 HF1",
+  "unchanged_terms": 40
+}

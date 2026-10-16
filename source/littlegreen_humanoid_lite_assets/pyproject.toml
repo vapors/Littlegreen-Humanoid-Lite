@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "littlegreen_humanoid_lite_assets"
-version = "11.0.0"
+version = "11.1.0"
 description = "Description files for Littlegreen Humanoid Lite"
 authors = [
     { name = "Berkeley Humanoid Project Developers" },

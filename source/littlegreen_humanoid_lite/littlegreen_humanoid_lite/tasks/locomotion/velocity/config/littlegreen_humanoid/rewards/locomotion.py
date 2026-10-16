@@ -1,4 +1,4 @@
-"""v11.0.0 flattened reward configuration. Numerical behavior frozen from v10.3.1."""
+"""v11.1.0 bilateral acquisition experiment; v11.0 HF1 preserved as archive baseline."""
 
 from isaaclab.managers import RewardTermCfg as RewTerm, SceneEntityCfg
 from isaaclab.utils import configclass
@@ -123,7 +123,7 @@ class LocomotionRewardsCfg:
                 "clearance_credit": 0.48, "single_support_credit": 0.20,
                 "load_asymmetry_credit": 0.10, **_VIABILITY,
             },
-            weight=0.80,  # was 1.20; reduce success from one-legged speed/rocking
+            weight=0.50,  # was 1.20; reduce success from one-legged speed/rocking
         )
     track_ang_vel_z_acquisition = RewTerm(
         func=mdp.track_ang_vel_z_acquisition_v63,
@@ -181,7 +181,7 @@ class LocomotionRewardsCfg:
             "onset_speed_mps": 0.015, "full_speed_mps": 0.15,
             "full_clearance_m": 0.040, **_VIABILITY,
         },
-        weight=1.00,
+        weight=0.65,
     )
 
     # v6.8 directional on-ramp, now frame-corrected and explicitly whole-foot
@@ -314,7 +314,7 @@ class LocomotionRewardsCfg:
             "command_threshold": 0.08, "full_credit_until_s": 0.25, "fade_out_end_s": 0.42,
             "bodies_per_foot": 2, **_VIABILITY,
         },
-        weight=0.50,
+        weight=0.35,
     )
 
     prolonged_single_support = RewTerm(
@@ -417,20 +417,42 @@ class LocomotionRewardsCfg:
         weight=-0.08,
     )
 
+    # v11.1: quality-triggered swing bouts; repeated same-side bouts have diminishing
+    # value except for recovery and lateral/strafe commands. No prescribed gait phase.
     balanced_swing_discovery = RewTerm(
-            func=mdp.balanced_swing_discovery_v1031,
-            params={
-                "command_name": "base_velocity",
-                "sensor_cfg": _whole("contact_forces"),
-                "asset_cfg": _whole("robot"),
-                "command_threshold": 0.08,
-                "clearance_full_m": 0.022,
-                "rise_full_mps": 0.100,
-                "forward_full_mps": 0.22,
-                "max_stance_speed_mps": 0.12,
-                "recency_decay": 0.985,
-                "individual_bootstrap": 0.22,
-                **_VIABILITY,
-            },
-            weight=0.85,  # first-test small reward, not a replacement for WORLD rate
-        )
+        func=mdp.bilateral_swing_discovery_v111,
+        params={
+            "command_name": "base_velocity", "sensor_cfg": _whole("contact_forces"),
+            "asset_cfg": _whole("robot"),
+            "command_threshold": 0.08, "clearance_full_m": 0.022,
+            "rise_full_mps": 0.100, "forward_full_mps": 0.22,
+            "max_stance_speed_mps": 0.12,
+            "attempt_threshold": 0.065, "rearm_threshold": 0.025,
+            "rearm_steps": 4, "attempt_cooldown_s": 0.25,
+            "individual_bootstrap": 0.55, "opposite_attempt_bonus": 0.45,
+            "repeat_decay": 0.68, "repeat_floor": 0.20,
+            "recency_decay": 0.985,
+            **_VIABILITY,
+        },
+        weight=1.20,
+    )
+
+    # Only pays for increasing load/COM acceptance after qualified airborne
+    # directional swing and full-foot replant; cannot farm static leaning.
+    receiving_foot_load_acceptance = RewTerm(
+        func=mdp.receiving_foot_load_acceptance_v111,
+        params={
+            "command_name": "base_velocity", "sensor_cfg": _whole("contact_forces"),
+            "asset_cfg": _whole("robot"),
+            "command_threshold": 0.08, "clearance_full_m": 0.022,
+            "rise_full_mps": 0.100, "forward_full_mps": 0.22,
+            "max_stance_speed_mps": 0.12,
+            "attempt_threshold": 0.065, "rearm_threshold": 0.025,
+            "rearm_steps": 4, "attempt_cooldown_s": 0.25,
+            "individual_bootstrap": 0.55, "opposite_attempt_bonus": 0.45,
+            "repeat_decay": 0.68, "repeat_floor": 0.20,
+            "recency_decay": 0.985,
+            **_VIABILITY,
+        },
+        weight=0.85,
+    )

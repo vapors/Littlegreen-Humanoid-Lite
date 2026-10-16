@@ -1,0 +1,64 @@
+{
+  "intentional_reward_changes": {
+    "balanced_swing_discovery": {
+      "function": "mdp.bilateral_swing_discovery_v111",
+      "new_weight": 1.2,
+      "old_weight": 0.85,
+      "reason": "v11.1 gated discovery/receiving-foot refinement"
+    },
+    "coherent_swing_rise_velocity": {
+      "function": "mdp.coherent_swing_rise_velocity_v67",
+      "new_weight": 0.65,
+      "old_weight": 1.0,
+      "reason": "reduce unilateral bootstrapping"
+    },
+    "receiving_foot_load_acceptance": {
+      "function": "mdp.receiving_foot_load_acceptance_v111",
+      "new_weight": 0.85,
+      "old_weight": null,
+      "reason": "v11.1 gated discovery/receiving-foot refinement"
+    },
+    "track_lin_vel_xy_acquisition": {
+      "function": "mdp.gait_conditioned_track_lin_vel_xy_v67",
+      "new_weight": 0.5,
+      "old_weight": 0.8,
+      "reason": "reduce unilateral bootstrapping"
+    },
+    "whole_foot_air_time_exploration": {
+      "function": "mdp.whole_foot_air_time_viability_gated_v63",
+      "new_weight": 0.35,
+      "old_weight": 0.5,
+      "reason": "reduce unilateral bootstrapping"
+    }
+  },
+  "limitations": [
+    "Derived swing quality and receiving-foot acceptance are new experimental rewards; no walking success claimed",
+    "The source-only harness exercises actual Python tensor functions with synthetic kinematics, not PhysX",
+    "The policy runtime contract must preserve zero/unsupported commands; exporter metadata alone does not patch ROS 2",
+    "All-command per-term measured reward contribution remains an analyzer future gate"
+  ],
+  "new_reward_terms": 45,
+  "not_tested": [
+    "Isaac Lab task instantiation and live contact/reward updates",
+    "RSL-RL 1/250/500-step GPU training and learning behavior",
+    "live analyzer from an 11.1 checkpoint",
+    "live ONNX exporter/deployment metadata write",
+    "Python 3.10 editable install on Isaac Sim host",
+    "Track 2 zero-command runtime implementation and physical motion"
+  ],
+  "release": "11.1.0",
+  "reward_diff_count": 5,
+  "source": "v11.0.0 HF1 full standalone ZIP",
+  "source_sha256": "ad5b7c7a4f88ee0135e55d05665d4a83e486b3f5ee53b026313a641c5d91855a",
+  "status": "PASS_OFFLINE_HOST_RUNTIME_REQUIRED",
+  "verified_offline": {
+    "clean_extraction": "PASS: SHA256 1:1 and 15 tests from extracted ZIP",
+    "multi_step_tensor_reward_harness": "PASS (distinct attempts, repeat attenuation, opposite discovery, recovery/strafe exemptions, load monotonicity, command reset)",
+    "noneditable_package_install": "PASS: three distributions, version 11.1.0 in separate --target using --no-deps --no-build-isolation",
+    "physical_contract_source_parity": "PASS: corrected mass USD, contract, actuator, observations, actions byte-for-byte vs HF1",
+    "pytest_tests_passed": 15,
+    "python_compileall": "PASS",
+    "static_contract_check": "PASS",
+    "zip_integrity": "PASS"
+  }
+}

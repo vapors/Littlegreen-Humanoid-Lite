@@ -46,6 +46,14 @@
     "ONNX export compatibility and Track 2 contract audit",
     "Verify binary USD internal references via Omniverse"
   ],
+  "packaging_hotfix": {
+    "correction": "Restored decorator exactly as in v10.3.1a baseline; added offline entrypoint regression check",
+    "date": "2026-10-16",
+    "id": "HF1",
+    "isaac_host_smoke_after_hotfix": "NOT_RUN_REQUIRES_ISAACLAB_HOST",
+    "issue": "Missing @hydra_task_config decorator over main(env_cfg,agent_cfg) in training entrypoint",
+    "numerical_recipe_changed": false
+  },
   "python_package_versions": {
     "littlegreen_humanoid_lite": "11.0.0",
     "littlegreen_humanoid_lite_assets": "11.0.0",
@@ -61,6 +69,7 @@
       "status": "PASS"
     },
     "fresh_extracted_checkout": "PASS",
+    "hydra_entrypoint_ast_and_injection_stub": "PASS",
     "offline_contract_checker": "PASS",
     "ppo_recipe_ast_parity_except_experiment_name": "PASS",
     "python_source_compile": "PASS",
@@ -76,7 +85,7 @@
     "single_gym_registration_source_assertion": "PASS",
     "static_pytest": {
       "status": "PASS",
-      "tests_passed": 7
+      "tests_passed": 8
     },
     "zip_integrity": "PASS"
   }

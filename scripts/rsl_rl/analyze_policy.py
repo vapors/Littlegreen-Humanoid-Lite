@@ -10,8 +10,8 @@ from isaaclab.app import AppLauncher
 import cli_args  # isort: skip
 from command_override import apply_velocity_command_override  # isort: skip
 
-parser=argparse.ArgumentParser(description="Analyze LittleGreen v10.3 straight-tracking / wider-command exploration.")
-parser.add_argument("--task",default="Velocity-Lilgreen-Locomotion-ST3215-Loaded-v110")
+parser=argparse.ArgumentParser(description="Analyze LittleGreen v11.1 bilateral-gait acquisition.")
+parser.add_argument("--task",default="Velocity-Lilgreen-Locomotion-ST3215-Loaded-v111")
 parser.add_argument("--num_envs",type=int,default=256)
 parser.add_argument("--steps",type=int,default=2000)
 parser.add_argument("--output_dir",type=str,default=None)
@@ -40,7 +40,7 @@ if not (0.0 < args_cli.handoff_pose_late_fraction <= 1.0):
     parser.error("--handoff_pose_late_fraction must be in (0, 1].")
 if not (0.0 <= args_cli.handoff_pose_min_viability <= 1.0):
     parser.error("--handoff_pose_min_viability must be in [0, 1].")
-TASK="Velocity-Lilgreen-Locomotion-ST3215-Loaded-v110"
+TASK="Velocity-Lilgreen-Locomotion-ST3215-Loaded-v111"
 if args_cli.task!=TASK: parser.error(f"analyze_policy.py accepts only {TASK}")
 args_cli.enable_cameras=False
 app_launcher=AppLauncher(args_cli); simulation_app=app_launcher.app
@@ -158,18 +158,37 @@ def main():
         takeover=torch.zeros_like(active); takeover_timer=torch.zeros((nenv,2),device=dev); takeover_initial_dist=torch.zeros((nenv,2),device=dev)
         handoff_done=torch.zeros_like(active); release_watch_active=torch.zeros((nenv,),device=dev,dtype=torch.bool); release_watch_new_foot=torch.full((nenv,),-1,device=dev,dtype=torch.long); release_watch_timer=torch.zeros((nenv,),device=dev)
 
-        v1031_quality_sum=torch.zeros(2, device=dev, dtype=torch.float64)
-        v1031_pair_sum=z(); v1031_reward_sum=z(); v1031_active_samples=z()
+        v111_quality_sum=torch.zeros(2, device=dev, dtype=torch.float64)
+        v111_pair_sum=z(); v111_reward_sum=z(); v111_active_samples=z()
+        v111_attempts=torch.zeros(2,device=dev,dtype=torch.float64)
+        v111_credit=torch.zeros(2,device=dev,dtype=torch.float64)
+        v111_recovery=z(); v111_strafe=z(); v111_receiver=z()
+        v111_receiver_side=torch.zeros(2,device=dev,dtype=torch.float64)
+        v111_receiver_load=torch.zeros(2,device=dev,dtype=torch.float64)
+        v111_receiver_com=torch.zeros(2,device=dev,dtype=torch.float64)
+        v111_receiver_completed=torch.zeros(2,device=dev,dtype=torch.float64)
+        v111_max_streak=torch.zeros((),device=dev,dtype=torch.float64)
         for step in range(args_cli.steps):
             if force is not None: apply_velocity_command_override(env,force,command_name=args_cli.eval_force_command_name)
             with torch.inference_mode(): act=policy(obs); obs,_,dones,_=vec_env.step(act)[:4]
             dones=dones.to(device=dev,dtype=torch.bool); falls+=dones.sum()
-            if hasattr(env, "_littlegreen_v1031_swing_quality"):
-                v1031_q=env._littlegreen_v1031_swing_quality
-                v1031_quality_sum+=v1031_q.double().sum(dim=0)
-                v1031_pair_sum+=env._littlegreen_v1031_bilateral_pair_quality.double().sum()
-                v1031_reward_sum+=env._littlegreen_v1031_bilateral_reward.double().sum()
-                v1031_active_samples+=((v1031_q>0.05).any(dim=1)).sum()
+            if hasattr(env, "_lgh111_cached_result"):
+                d111=env._lgh111_cached_result
+                v111_q=d111['quality']
+                v111_quality_sum+=v111_q.double().sum(dim=0)
+                v111_pair_sum+=d111['paired'].double().sum()
+                v111_reward_sum+=d111['swing'].double().sum()
+                v111_active_samples+=((v111_q>0.05).any(dim=1)).sum()
+                v111_attempts+=d111['events'].double().sum(dim=0)
+                v111_credit+=d111['side_credit'].double().sum(dim=0)
+                v111_recovery+=d111['recovery_exempt'].double().sum()
+                v111_strafe+=d111['strafe_exempt'].double().sum()
+                v111_receiver+=d111['receiver'].double().sum()
+                v111_receiver_side+=d111['receiver_progress'].double().sum(dim=0)
+                v111_receiver_load+=d111['receiver_load_delta'].double().sum(dim=0)
+                v111_receiver_com+=d111['receiver_com_delta'].double().sum(dim=0)
+                v111_receiver_completed+=d111['receiver_complete'].double().sum(dim=0)
+                v111_max_streak=torch.maximum(v111_max_streak,d111['repeat_streak'].double().max())
 
             if hasattr(env,"_littlegreen_v66_start_event"):
                 v66_start+=env._littlegreen_v66_start_event.double().sum(0)
@@ -481,7 +500,7 @@ def main():
             pgmed=torch.median(hpg,dim=0).values
             handoff_pose={
                 "schema_version":2,
-                "source":"analyze_policy_v10_3_1.py",
+                "source":"analyze_policy_v11_1.py",
                 "task":args_cli.task,
                 "checkpoint":checkpoint,
                 "command":[0.0,0.0,0.0],
@@ -519,8 +538,16 @@ def main():
                     "Pose and previous-action seed are derived from the exact same late, viable, bilateral main+toe full-plant zero-command samples.",
                 ],
             }
+        if handoff_pose is not None:
+            samples_ok=handoff_pose['selection']['selected_samples']>=100
+            plant_ok=(_f(stand_full_plant)/SN)>=0.50
+            handoff_pose['deployment_qualification']={
+                'status':'DIAGNOSTIC_ONLY' if not (samples_ok and plant_ok) else 'CANDIDATE_REQUIRES_TRACK2_REVIEW',
+                'min_samples':100,'min_full_plant_fraction':0.50,
+                'observed_full_plant_fraction':_f(stand_full_plant)/SN,
+                'note':'Never replace q_default or authorize physical motion automatically.'}
         summary={
-            "release":"11.0.0","task":args_cli.task,"checkpoint":checkpoint,"forced_command":args_cli.eval_force_command,"policy_observation_count":47,"action_count":len(joint_names),"steps":args_cli.steps,"num_envs":nenv,"done_count":int(round(_f(falls))),
+            "release":"11.1.0","task":args_cli.task,"checkpoint":checkpoint,"forced_command":args_cli.eval_force_command,"policy_observation_count":47,"action_count":len(joint_names),"steps":args_cli.steps,"num_envs":nenv,"done_count":int(round(_f(falls))),
             "viability":{"mean_factor":_f(viability_sum)/N,"fraction_below_0p45":_f(low_viability)/N,"definition":"soft product: full by <=25deg tilt and >=0.400m COM height; zero by >=55deg or <=0.340m"},
             "velocity":{"mean_raw_along_command_m_s":_f(raw_vel_along)/M,"mean_viability_weighted_along_command_m_s":_f(viable_vel_along)/M,"positive_velocity_low_viability_fraction":_f(forward_low_viability)/M,"mean_command":[_f(x)/N for x in cmd_sum],"mean_actual":[_f(x)/N for x in actual_sum],"tracking_rmse":[(_f(track_sq[i])/N)**0.5 for i in range(3)]},
             "contact":{"both_feet_any_contact_fraction":_f(both)/N,"single_support_any_contact_fraction":_f(single)/N,"no_support_fraction":_f(none)/N,"partial_main_or_toe_contact_fraction":_f(partial)/N},
@@ -654,9 +681,9 @@ def main():
                  "configured_general_ranges":{"lin_vel_x_m_s":[0.12,0.30],"lin_vel_y_m_s":[0.0,0.0],"ang_vel_z_rad_s":[0.0,0.0]},
                  "configured_turn_focus_ranges":None,
             },
-            "economics_v1031":{
-                "definition":"v10.3.1 corrected USD/k150, forward-only commands; v10.2 gait handoff/WORLD-rate kept; lower readiness/rocking and tracking weights; added small pre-handoff symmetric bilateral swing quality",
-                "weights":{"track_lin_vel_xy_acquisition":0.80,"support_readiness_progress":0.35,"stance_relative_com_drive":0.18,"finite_swing_initiation":1.90,"support_takeover_progress":1.85,"swing_foot_command_velocity":1.85,"balanced_swing_discovery":0.85,"opposite_support_release":1.80,"completed_gait_step":1.85,"bilateral_passage":1.10,"commanded_world_rate":2.00,"yaw_acquisition":0.55},
+            "economics_v111":{
+                "definition":"v11.1 experimental attenuated repeated-side exploration plus post-airborne receiving-foot load/COM acceptance; v10.3.1 original gait-completion/WORLD-rate intact",
+                "weights":{"track_lin_vel_xy_acquisition":0.50,"support_readiness_progress":0.35,"stance_relative_com_drive":0.18,"finite_swing_initiation":1.90,"support_takeover_progress":1.85,"swing_foot_command_velocity":1.85,"balanced_swing_discovery":1.20,"receiving_foot_load_acceptance":0.85,"coherent_swing_rise_velocity":0.65,"whole_foot_air_time_exploration":0.35,"opposite_support_release":1.80,"completed_gait_step":1.85,"bilateral_passage":1.10,"commanded_world_rate":2.00,"yaw_acquisition":0.55},
                 "world_rate_bilateral_mix":0.50,
                  "configured_general_ranges":{"lin_vel_x_m_s":[0.12,0.30],"lin_vel_y_m_s":[0.0,0.0],"ang_vel_z_rad_s":[0.0,0.0]},
             },
@@ -697,14 +724,30 @@ def main():
         }
         rows=[]
         for j,name in enumerate(joint_names): rows.append({"index":j,"joint":name,"joint_position_mean_rad":_f(q_sum[j])/J,"torque_abs_mean_nm":_f(torque_abs[j])/J,"hard_torque_fraction":_f(torque_hard[j])/J,"standing_hard_torque_fraction":_f(stand_torque[j])/SN,"raw_action_excess_fraction":_f(raw_excess[j])/J,"bounded_saturation_fraction":_f(bound_sat[j])/J})
-        summary["bilateral_acquisition_v1031"] = {
-            "mean_left_foot_quality": _f(v1031_quality_sum[0])/N,
-            "mean_right_foot_quality": _f(v1031_quality_sum[1])/N,
-            "mean_recent_bilateral_pair_quality": _f(v1031_pair_sum)/N,
-            "fraction_steps_with_quality_gt_0p05": _f(v1031_active_samples)/N,
-            "mean_unweighted_term": _f(v1031_reward_sum)/N,
-            "mean_weighted_term_before_dt": 0.85*_f(v1031_reward_sum)/N,
-            "definition": "pre-handoff continuous term; only bilateral recent swings earn pair income, true completed support steps remain in the original v6.6/v9.x counters",
+        summary["bilateral_acquisition_v111"] = {
+            "mean_left_foot_quality": _f(v111_quality_sum[0])/N,
+            "mean_right_foot_quality": _f(v111_quality_sum[1])/N,
+            "mean_recent_bilateral_pair_quality": _f(v111_pair_sum)/N,
+            "fraction_steps_with_quality_gt_0p05": _f(v111_active_samples)/N,
+            "mean_unweighted_term": _f(v111_reward_sum)/N,
+            "mean_weighted_term_before_dt": 1.20*_f(v111_reward_sum)/N,
+            "mean_receiving_foot_load_acceptance_weighted_before_dt":0.85*_f(v111_receiver)/N,
+            "distinct_qualified_attempts_left":int(round(_f(v111_attempts[0]))),
+            "distinct_qualified_attempts_right":int(round(_f(v111_attempts[1]))),
+            "mean_credit_multiplier_left":_f(v111_credit[0])/N,
+            "mean_credit_multiplier_right":_f(v111_credit[1])/N,
+            "recovery_attenuation_exception_fraction":_f(v111_recovery)/N,
+            "strafe_attenuation_exception_fraction":_f(v111_strafe)/N,
+            "receiving_load_increments_left":_f(v111_receiver_load[0]),
+            "receiving_load_increments_right":_f(v111_receiver_load[1]),
+            "receiving_com_closeness_increments_left":_f(v111_receiver_com[0]),
+            "receiving_com_closeness_increments_right":_f(v111_receiver_com[1]),
+            "receiving_reward_left":_f(v111_receiver_side[0]),
+            "receiving_reward_right":_f(v111_receiver_side[1]),
+            "receiving_completion_events_left":int(round(_f(v111_receiver_completed[0]))),
+            "receiving_completion_events_right":int(round(_f(v111_receiver_completed[1]))),
+            "max_consecutive_side_attempts":int(round(_f(v111_max_streak))),
+            "definition": "v11.1 distinct qualified bouts; diminishing same-side credit with recovery/strafe exemptions; receiving-foot reward measured separately",
         }
         # Static configurations alone are insufficient evidence of runtime plant.
         # Audit PhysX articulation mass and effective active actuator gains.

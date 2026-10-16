@@ -1,7 +1,7 @@
 """Export supported LittleGreen checkpoints for deployment.
 
 The maintained exporter supports the canonical v2.5 foundation policies plus the
-current v11 baseline locomotion policy (v10.3.1 frozen recipe):
+current v11.1 bilateral-gait acquisition policy (v11.0 physical/action contract):
 
 * Velocity-Lilgreen-Stand-ST3215-Loaded-v24
 * Velocity-Lilgreen-Transfer-ST3215-Loaded-v24
@@ -74,11 +74,11 @@ import cli_args  # isort: skip
 STAND_TASK = "Velocity-Lilgreen-Stand-ST3215-Loaded-v24"
 TRANSFER_TASK = "Velocity-Lilgreen-Transfer-ST3215-Loaded-v24"
 WALK_TASK = "Velocity-Lilgreen-Walk-ST3215-Loaded-v25"
-LOCOMOTION_TASK = "Velocity-Lilgreen-Locomotion-ST3215-Loaded-v110"
+LOCOMOTION_TASK = "Velocity-Lilgreen-Locomotion-ST3215-Loaded-v111"
 SUPPORTED_TASKS = (LOCOMOTION_TASK,)
 
 PROJECT_NAME = "Littlegreen-Humanoid-Lite"
-PROJECT_VERSION = "11.0.0"
+PROJECT_VERSION = "11.1.0"
 EXPORT_SCHEMA_VERSION = 2
 TRAINING_PACKAGE = "littlegreen_humanoid_lite"
 ASSET_PACKAGE = "littlegreen_humanoid_lite_assets"
@@ -607,18 +607,25 @@ def _resolved_command_metadata(env_cfg, task: str) -> dict[str, Any]:
         return result
 
     metadata: dict[str, Any] = {
-        "command_contract_version": 1,
+        "command_contract_version": 2,
         "command_velocity_source": "runtime_command_input",
         "command_limit_lin_vel_x": _pair(ranges.lin_vel_x, "lin_vel_x"),
         "command_limit_lin_vel_y": _pair(ranges.lin_vel_y, "lin_vel_y"),
         "command_limit_ang_vel_z": _pair(ranges.ang_vel_z, "ang_vel_z"),
         "deployment_requires_command_clamp": task == LOCOMOTION_TASK,
-        "command_limit_behavior": "clamp_each_axis_to_training_range",
+        "command_limit_behavior": "zero_or_positive_forward_with_deadzone_and_clamp;reject_unsupported_axes",
+        "command_zero_supported": task == LOCOMOTION_TASK,
+        "command_zero_vector": [0.0, 0.0, 0.0],
+        "command_zero_deadzone_mps": 0.08 if task == LOCOMOTION_TASK else None,
+        "command_unsupported_negative_forward_behavior": "reject_or_safe_zero_not_positive_clamp" if task == LOCOMOTION_TASK else None,
+        "command_unsupported_lateral_yaw_behavior": "reject_or_safe_zero_not_silent_motion" if task == LOCOMOTION_TASK else None,
+        "command_positive_forward_below_training_min": "clamp_to_min_if_above_deadzone" if task == LOCOMOTION_TASK else None,
+        "command_zero_training_probability": float(command_cfg.rel_standing_envs) if task == LOCOMOTION_TASK else 0.0,
     }
     if task == LOCOMOTION_TASK:
         metadata.update(
             {
-                "command_training_profile": "v10_3_1_forward_bilateral_acquisition",
+                "command_training_profile": "v11_1_0_bilateral_gait_acquisition",
                 "command_resampling_time_range_s": _float_list(
                     command_cfg.resampling_time_range, 2, "resampling_time_range"
                 ),
@@ -752,7 +759,7 @@ def _build_deploy_config(
         # while the actor observation contract is now the shared v2.4.3 47-D contract.
         "deployment_contract_profile": "v1_4_5_stabilized_vector_residual",
         "training_release_profile": (
-            "v10_3_1_forward_bilateral_acquisition"
+            "v11_1_0_bilateral_gait_acquisition"
             if args_cli.task == LOCOMOTION_TASK
             else "v2_4_3_whole_foot_transfer_walk_foundation"
         ),
@@ -925,6 +932,13 @@ def _deployment_contract(config: dict[str, Any]) -> dict[str, Any]:
             "ang_vel_z": config["command_limit_ang_vel_z"],
             "runtime_clamp_required": config["deployment_requires_command_clamp"],
             "clamp_behavior": config["command_limit_behavior"],
+            "zero_supported": config.get("command_zero_supported", False),
+            "zero_vector": config.get("command_zero_vector"),
+            "zero_deadzone_mps": config.get("command_zero_deadzone_mps"),
+            "negative_forward_behavior": config.get("command_unsupported_negative_forward_behavior"),
+            "lateral_yaw_behavior": config.get("command_unsupported_lateral_yaw_behavior"),
+            "forward_between_deadzone_and_min": config.get("command_positive_forward_below_training_min"),
+            "training_zero_probability": config.get("command_zero_training_probability"),
         },
         "action_contract": {
             "version": config["action_contract_version"],
@@ -945,6 +959,8 @@ def _deployment_contract(config: dict[str, Any]) -> dict[str, Any]:
             "canonical_joint_order": True,
             "paired_yaml_onnx_sha256": True,
             "runtime_command_range_clamp": config["deployment_requires_command_clamp"],
+            "runtime_must_preserve_zero_command": config.get("command_zero_supported", False),
+            "runtime_must_block_unsupported_axes": config.get("command_zero_supported", False),
             "neutral_static_phase_tail": config["phase_mode"] == "neutral_static",
         },
     }

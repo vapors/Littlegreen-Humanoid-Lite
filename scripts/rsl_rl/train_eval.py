@@ -121,8 +121,8 @@ import hashlib
 import json
 from pathlib import Path
 
-CANONICAL_TASK = "Velocity-Lilgreen-Locomotion-ST3215-Loaded-v110"
-CANONICAL_EXPERIMENT = "littlegreen_v11_0_0_clean_core_bilateral_acquisition_fresh"
+CANONICAL_TASK = "Velocity-Lilgreen-Locomotion-ST3215-Loaded-v111"
+CANONICAL_EXPERIMENT = "littlegreen_v11_1_0_bilateral_acquisition_fresh"
 
 def _source_contract_fingerprints():
     """Hash runtime-critical code and static contract; excludes mutable logs."""
@@ -134,7 +134,7 @@ def _source_contract_fingerprints():
         "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/config/littlegreen_humanoid/actions_cfg.py",
         "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/config/littlegreen_humanoid/observations_cfg.py",
         "source/littlegreen_humanoid_lite_assets/data/usd/lilgreen_mass_v2926.usd",
-        "manifests/CONTRACT_V11.json",
+        "manifests/CONTRACT_V111.json",
     ]
     # Include all runtime Python code, not just its public entrypoints.
     rels += [str(p.relative_to(root)) for p in sorted((root/"source/littlegreen_humanoid_lite/littlegreen_humanoid_lite").rglob("*.py"))]

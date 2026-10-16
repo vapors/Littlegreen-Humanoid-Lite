@@ -133,3 +133,10 @@ def littlegreen_phase_sin_cos_v24(
 from littlegreen_humanoid_lite.tasks.locomotion.velocity.mdp.bilateral_acquisition_v1031 import (
     balanced_swing_discovery_v1031,
 )
+
+# v11.1 behavioral experiment: deliberately explicit rather than altering
+# inherited versioned reward mechanics.
+from littlegreen_humanoid_lite.tasks.locomotion.velocity.mdp.bilateral_acquisition_v111 import (
+    bilateral_swing_discovery_v111,
+    receiving_foot_load_acceptance_v111,
+)

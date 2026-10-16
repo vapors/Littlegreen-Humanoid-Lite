@@ -1,7 +1,7 @@
 {
   "canonical": {
-    "status": "implemented_not_host_validated",
-    "task": "Velocity-Lilgreen-Locomotion-ST3215-Loaded-v110"
+    "status": "experimental_not_isaac_host_validated",
+    "task": "Velocity-Lilgreen-Locomotion-ST3215-Loaded-v111"
   },
   "planned": [
     {

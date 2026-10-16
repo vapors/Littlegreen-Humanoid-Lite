@@ -1,4 +1,4 @@
-"""v11.0.0 live Isaac Lab articulation / action contract preflight (no policy).
+"""v11.1.0 live Isaac Lab articulation / action contract preflight (no policy).
 
 Launches a single free-root physics environment and reads the real spawned
 PhysX articulation; it does not infer mass from an on-disk USD audit alone.
@@ -8,13 +8,13 @@ import argparse, hashlib, json, math
 from pathlib import Path
 from isaaclab.app import AppLauncher
 
-TASK="Velocity-Lilgreen-Locomotion-ST3215-Loaded-v110"
+TASK="Velocity-Lilgreen-Locomotion-ST3215-Loaded-v111"
 p=argparse.ArgumentParser(description=__doc__)
 p.add_argument("--task", default=TASK)
 p.add_argument("--output", default="logs/v11_preflight.json")
 AppLauncher.add_app_launcher_args(p)
 a=p.parse_args()
-if a.task != TASK: p.error("v11.0.0 preflight requires the frozen v103 task")
+if a.task != TASK: p.error("v11.1.0 preflight requires the current v111 task")
 a.enable_cameras=False
 app=AppLauncher(a).app
 import torch
@@ -90,7 +90,7 @@ try:
         "warnings":["Provisional link masses; weigh actual hardware", 
                     "This preflight checks articulation setup, not free-standing stability or foot penetration", 
                     "No PPO checkpoint was loaded or trained"]})
-    print('[PREFLIGHT] PASS: runtime articulated mass and v11.0.0 k150 contract',flush=True)
+    print('[PREFLIGHT] PASS: runtime articulated mass and v11.1.0 k150 contract',flush=True)
 except Exception as exc:
     report['status']='FAIL'; report['error']=repr(exc)
     raise

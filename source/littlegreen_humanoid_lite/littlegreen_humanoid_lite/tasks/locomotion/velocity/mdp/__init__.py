@@ -18,3 +18,5 @@ from .st3215_loaded_actuator_model import *  # noqa: F401, F403
 
 from .commands_v101 import *  # noqa: F401, F403
 from .bilateral_acquisition_v1031 import *  # noqa: F401, F403
+
+from .bilateral_acquisition_v111 import *  # noqa: F401, F403
