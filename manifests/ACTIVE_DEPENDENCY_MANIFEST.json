@@ -1,0 +1,1818 @@
+{
+  "included_files_pre_manifest": 180,
+  "original_archive_files": 1998,
+  "python_file_imports": {
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/__init__.py": [],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/environments/__init__.py": [
+      {
+        "level": 1,
+        "module": "mujoco",
+        "names": [
+          "*"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/environments/mujoco.py": [
+      {
+        "level": 0,
+        "module": "time"
+      },
+      {
+        "level": 0,
+        "module": "threading"
+      },
+      {
+        "level": 0,
+        "module": "numpy"
+      },
+      {
+        "level": 0,
+        "module": "torch"
+      },
+      {
+        "level": 0,
+        "module": "mujoco"
+      },
+      {
+        "level": 0,
+        "module": "mujoco.viewer"
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite_lowlevel.policy.config",
+        "names": [
+          "Cfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite_lowlevel.policy.gamepad",
+        "names": [
+          "Se2Gamepad"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/environments/mujoco_lilgreen.py": [
+      {
+        "level": 0,
+        "module": "time"
+      },
+      {
+        "level": 0,
+        "module": "threading"
+      },
+      {
+        "level": 0,
+        "module": "numpy"
+      },
+      {
+        "level": 0,
+        "module": "torch"
+      },
+      {
+        "level": 0,
+        "module": "mujoco"
+      },
+      {
+        "level": 0,
+        "module": "mujoco.viewer"
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite_lowlevel.policy.config",
+        "names": [
+          "Cfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite_lowlevel.policy.gamepad",
+        "names": [
+          "Se2Gamepad"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/__init__.py": [
+      {
+        "level": 0,
+        "module": "isaaclab_tasks.utils",
+        "names": [
+          "import_packages"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/__init__.py": [
+      {
+        "level": 1,
+        "module": "velocity",
+        "names": [
+          "*"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/__init__.py": [],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/config/__init__.py": [],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/config/littlegreen_humanoid/__init__.py": [
+      {
+        "level": 0,
+        "module": "gymnasium"
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/config/littlegreen_humanoid/actions_cfg.py": [
+      {
+        "level": 0,
+        "module": "__future__",
+        "names": [
+          "annotations"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.utils",
+        "names": [
+          "configclass"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite.tasks.locomotion.velocity.mdp.hardware_contract",
+        "names": [
+          "ACTIONABLE_JOINTS_V1_2_3",
+          "HARDWARE_LOWER_LIMIT_RAD",
+          "HARDWARE_UPPER_LIMIT_RAD",
+          "RESIDUAL_ACTION_SCALE_RAD_V1_4_5_STABILIZED"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite.tasks.locomotion.velocity.mdp.st3215_actuator_model",
+        "names": [
+          "DATASET_NAME",
+          "ST3215_BUS_PHASE_WAIT_RANGE_S",
+          "ST3215_CENTER_HYSTERESIS_SPAN_RAD",
+          "ST3215_FIRST_ENCODER_DELAY_MEDIAN_S",
+          "ST3215_FIRST_ENCODER_DELAY_RANGE_S",
+          "ST3215_PEAK_VELOCITY_CURVES_RAD_S",
+          "ST3215_SMALL_SIGNAL_ERROR_FLOOR_RAD",
+          "ST3215_STATIC_GAIN_MEDIAN",
+          "ST3215_STEP_AMPLITUDE_KNOTS_RAD",
+          "ST3215_TAU_MEDIAN_S",
+          "ST3215_TAU_P10_S",
+          "ST3215_TAU_P90_S",
+          "validate_st3215_model_constants"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite.tasks.locomotion.velocity.mdp.st3215_loaded_actuator_model",
+        "names": [
+          "LOADED_CROUCH_DIRECTION_SIGN",
+          "LOADED_CROUCH_LOW_DEMAND_GAIN",
+          "LOADED_CROUCH_VMAX_RAD_S",
+          "LOADED_DATASET_NAME",
+          "LOADED_DIRECTION_CONDITIONING_WEIGHT",
+          "LOADED_ENVELOPE_COMBINATION_RULE",
+          "LOADED_RETURN_LOW_DEMAND_GAIN",
+          "LOADED_RETURN_TAU_SCALE",
+          "LOADED_RETURN_VMAX_RAD_S",
+          "validate_loaded_model_constants"
+        ]
+      },
+      {
+        "level": 1,
+        "module": null,
+        "names": [
+          "mdp"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/config/littlegreen_humanoid/agents/__init__.py": [],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/config/littlegreen_humanoid/agents/rsl_rl_ppo_cfg.py": [
+      {
+        "level": 0,
+        "module": "isaaclab.utils",
+        "names": [
+          "configclass"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab_rl.rsl_rl",
+        "names": [
+          "RslRlOnPolicyRunnerCfg",
+          "RslRlPpoActorCriticCfg",
+          "RslRlPpoAlgorithmCfg"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/config/littlegreen_humanoid/base_cfg.py": [
+      {
+        "level": 0,
+        "module": "__future__",
+        "names": [
+          "annotations"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "math"
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.managers",
+        "names": [
+          "EventTermCfg",
+          "SceneEntityCfg",
+          "TerminationTermCfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.utils",
+        "names": [
+          "configclass"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite.tasks.locomotion.velocity.mdp.hardware_contract",
+        "names": [
+          "ACTIONABLE_JOINTS_V1_2_3",
+          "HARDWARE_LOWER_LIMIT_RAD",
+          "HARDWARE_UPPER_LIMIT_RAD",
+          "ST3215_NO_LOAD_SPEED_RAD_S",
+          "ST3215_PEAK_TORQUE_NM",
+          "athletic_stabilized_default_joint_pos_dict"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite.tasks.locomotion.velocity.velocity_env_cfg",
+        "names": [
+          "LocomotionVelocityEnvCfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite_assets.robots.lilgreen_humanoid",
+        "names": [
+          "LILGREEN_CFG"
+        ]
+      },
+      {
+        "level": 1,
+        "module": null,
+        "names": [
+          "mdp"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/config/littlegreen_humanoid/curriculum/__init__.py": [],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/config/littlegreen_humanoid/mdp.py": [
+      {
+        "level": 0,
+        "module": "torch"
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.envs.mdp",
+        "names": [
+          "*"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite.tasks.locomotion.velocity.mdp.commands_v101",
+        "names": [
+          "TurnBiasedUniformVelocityCommandCfgV101",
+          "TurnBiasedUniformVelocityCommandV101"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite.tasks.locomotion.velocity.mdp.diagnostics",
+        "names": [
+          "PolicyDiagnostics"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite.tasks.locomotion.velocity.mdp.events",
+        "names": [
+          "set_joint_position_limits"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite.tasks.locomotion.velocity.mdp.foundation_phase",
+        "names": [
+          "command_synchronized_phase_fraction_v24",
+          "continuous_transfer_phase_fraction_v24",
+          "phase_sin_cos",
+          "random_static_phase_fraction_v24",
+          "reset_command_synchronized_phase_v24",
+          "reset_continuous_transfer_phase_v24",
+          "reset_random_static_phase_v24"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite.tasks.locomotion.velocity.mdp.hardware_actions",
+        "names": [
+          "*"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite.tasks.locomotion.velocity.mdp.hardware_rewards",
+        "names": [
+          "bounded_action_l2",
+          "bounded_action_rate_l2",
+          "base_com_height_exp_v24",
+          "bounded_last_action",
+          "normalized_torque_barrier_l2",
+          "max_torque_barrier_l2",
+          "sustained_max_torque_barrier_l2_v54",
+          "sustained_max_torque_barrier_l2_v60",
+          "pair_max_torque_barrier_l2",
+          "phase_com_lateral_progress_v243",
+          "phase_com_lateral_target_exp_v243",
+          "phase_main_foot_clearance_trajectory_v243",
+          "phase_main_foot_clearance_floor_v253",
+          "phase_main_foot_clearance_floor_v26",
+          "phase_toe_clearance_floor_v26",
+          "phase_scheduled_swing_whole_foot_contact_penalty_v26",
+          "phase_scheduled_stance_missing_contact_penalty_v26",
+          "phase_stance_whole_foot_slide_l2_v243",
+          "phase_support_load_target_exp_v243",
+          "phase_support_progress_v243",
+          "phase_toe_clearance_trajectory_v243",
+          "phase_toe_clearance_floor_v253",
+          "phase_whole_foot_contact_schedule_reward_v243",
+          "phase_zero_command_foot_alignment_l2_v243",
+          "transfer_sagittal_com_readiness_band_l2_v243",
+          "transfer_static_both_whole_feet_contact_v243",
+          "phase_lateral_foot_crossing_l2_v250",
+          "phase_swing_placement_along_command_exp_v250",
+          "standing_both_whole_feet_contact_v250",
+          "walk_sagittal_com_readiness_band_l2_v250",
+          "phase_com_lateral_progress_v24",
+          "phase_com_lateral_target_exp_v24",
+          "phase_contact_schedule_reward_v24",
+          "phase_stance_foot_slide_l2_v24",
+          "phase_support_load_target_exp_v24",
+          "phase_support_progress_v24",
+          "phase_swing_clearance_trajectory_v24",
+          "phase_swing_progress_along_command_v24",
+          "raw_action_excess_l2",
+          "soft_torque_utilization_l2",
+          "standing_base_height_exp",
+          "standing_base_xy_speed_l2",
+          "standing_both_feet_contact",
+          "standing_com_forward_over_feet_band_l2",
+          "standing_com_lateral_over_feet_l2",
+          "standing_contact_force_balance_l2",
+          "standing_default_joint_pose_l2",
+          "standing_feet_slide",
+          "standing_forward_lean_projected_gravity_exp",
+          "standing_mirrored_joint_residual_l2",
+          "standing_pair_max_torque_barrier_l2",
+          "standing_soft_torque_utilization_l2",
+          "standing_target_limit_margin_l2",
+          "standing_yaw_rate_l2",
+          "transfer_static_both_feet_contact_v24",
+          "transfer_static_default_pose_l2_v24"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite.tasks.locomotion.velocity.mdp.rewards",
+        "names": [
+          "*"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite.tasks.locomotion.velocity.mdp.st3215_actions",
+        "names": [
+          "ST3215MeasuredResidualJointPositionActionCfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite.tasks.locomotion.velocity.mdp.terminations",
+        "names": [
+          "body_contact_termination",
+          "moving_no_support_timeout"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite.tasks.locomotion.velocity.mdp.bilateral_acquisition_v1031",
+        "names": [
+          "balanced_swing_discovery_v1031"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/config/littlegreen_humanoid/observations_cfg.py": [
+      {
+        "level": 0,
+        "module": "isaaclab.managers",
+        "names": [
+          "ObservationGroupCfg",
+          "ObservationTermCfg",
+          "SceneEntityCfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.utils",
+        "names": [
+          "configclass"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.utils.noise",
+        "names": [
+          "AdditiveUniformNoiseCfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite.tasks.locomotion.velocity.mdp.hardware_contract",
+        "names": [
+          "ACTIONABLE_JOINTS_V1_2_3"
+        ]
+      },
+      {
+        "level": 1,
+        "module": null,
+        "names": [
+          "mdp"
+        ]
+      },
+      {
+        "level": 1,
+        "module": "base_cfg",
+        "names": [
+          "FEET_BODY_PATTERN"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/config/littlegreen_humanoid/rewards/__init__.py": [],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/config/littlegreen_humanoid/rewards/locomotion.py": [
+      {
+        "level": 0,
+        "module": "isaaclab.managers",
+        "names": [
+          "RewardTermCfg",
+          "SceneEntityCfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.utils",
+        "names": [
+          "configclass"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite.tasks.locomotion.velocity.mdp.hardware_contract",
+        "names": [
+          "ACTIONABLE_JOINTS_V1_2_3",
+          "ST3215_PEAK_TORQUE_NM"
+        ]
+      },
+      {
+        "level": 2,
+        "module": null,
+        "names": [
+          "mdp"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/config/littlegreen_humanoid/skills.py": [],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/config/littlegreen_humanoid/tasks/__init__.py": [],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/config/littlegreen_humanoid/tasks/locomotion.py": [
+      {
+        "level": 0,
+        "module": "__future__",
+        "names": [
+          "annotations"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "math"
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.managers",
+        "names": [
+          "EventTermCfg",
+          "SceneEntityCfg",
+          "TerminationTermCfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.utils",
+        "names": [
+          "configclass"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite.tasks.locomotion.velocity.mdp.hardware_contract",
+        "names": [
+          "ACTIONABLE_JOINTS_V1_2_3",
+          "HARDWARE_LOWER_LIMIT_RAD",
+          "HARDWARE_UPPER_LIMIT_RAD"
+        ]
+      },
+      {
+        "level": 2,
+        "module": null,
+        "names": [
+          "mdp"
+        ]
+      },
+      {
+        "level": 2,
+        "module": "actions_cfg",
+        "names": [
+          "LittlegreenActionsCfg"
+        ]
+      },
+      {
+        "level": 2,
+        "module": "base_cfg",
+        "names": [
+          "LittlegreenHardwareAlignedEnvCfg",
+          "apply_stabilized_default"
+        ]
+      },
+      {
+        "level": 2,
+        "module": "observations_cfg",
+        "names": [
+          "LittlegreenVelocityObservationsCfg",
+          "set_phase_mode"
+        ]
+      },
+      {
+        "level": 2,
+        "module": "rewards.locomotion",
+        "names": [
+          "LocomotionRewardsCfg"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/mdp/__init__.py": [
+      {
+        "level": 0,
+        "module": "isaaclab.envs.mdp",
+        "names": [
+          "*"
+        ]
+      },
+      {
+        "level": 1,
+        "module": "curriculums",
+        "names": [
+          "*"
+        ]
+      },
+      {
+        "level": 1,
+        "module": "rewards",
+        "names": [
+          "*"
+        ]
+      },
+      {
+        "level": 1,
+        "module": "events",
+        "names": [
+          "*"
+        ]
+      },
+      {
+        "level": 1,
+        "module": "terminations",
+        "names": [
+          "*"
+        ]
+      },
+      {
+        "level": 1,
+        "module": "hardware_contract",
+        "names": [
+          "*"
+        ]
+      },
+      {
+        "level": 1,
+        "module": "hardware_actions",
+        "names": [
+          "*"
+        ]
+      },
+      {
+        "level": 1,
+        "module": "hardware_rewards",
+        "names": [
+          "*"
+        ]
+      },
+      {
+        "level": 1,
+        "module": "diagnostics",
+        "names": [
+          "*"
+        ]
+      },
+      {
+        "level": 1,
+        "module": "st3215_actuator_model",
+        "names": [
+          "*"
+        ]
+      },
+      {
+        "level": 1,
+        "module": "st3215_actions",
+        "names": [
+          "*"
+        ]
+      },
+      {
+        "level": 1,
+        "module": "st3215_loaded_actuator_model",
+        "names": [
+          "*"
+        ]
+      },
+      {
+        "level": 1,
+        "module": "commands_v101",
+        "names": [
+          "*"
+        ]
+      },
+      {
+        "level": 1,
+        "module": "bilateral_acquisition_v1031",
+        "names": [
+          "*"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/mdp/bilateral_acquisition_v1031.py": [
+      {
+        "level": 0,
+        "module": "__future__",
+        "names": [
+          "annotations"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "torch"
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.managers",
+        "names": [
+          "SceneEntityCfg"
+        ]
+      },
+      {
+        "level": 1,
+        "module": "rewards",
+        "names": [
+          "_v67_whole_foot_kinematics"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/mdp/commands_v101.py": [
+      {
+        "level": 0,
+        "module": "__future__",
+        "names": [
+          "annotations"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "collections.abc",
+        "names": [
+          "Sequence"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "torch"
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.envs.mdp.commands.commands_cfg",
+        "names": [
+          "UniformVelocityCommandCfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.envs.mdp.commands.velocity_command",
+        "names": [
+          "UniformVelocityCommand"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.utils",
+        "names": [
+          "configclass"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/mdp/curriculums.py": [
+      {
+        "level": 0,
+        "module": "__future__",
+        "names": [
+          "annotations"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "torch"
+      },
+      {
+        "level": 0,
+        "module": "collections.abc",
+        "names": [
+          "Sequence"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "typing",
+        "names": [
+          "TYPE_CHECKING"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.assets",
+        "names": [
+          "Articulation"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.managers",
+        "names": [
+          "SceneEntityCfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.terrains",
+        "names": [
+          "TerrainImporter"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.envs",
+        "names": [
+          "RLTaskEnv"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/mdp/diagnostics.py": [
+      {
+        "level": 0,
+        "module": "__future__",
+        "names": [
+          "annotations"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "collections.abc",
+        "names": [
+          "Sequence"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "typing",
+        "names": [
+          "TYPE_CHECKING"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "torch"
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.assets",
+        "names": [
+          "Articulation"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.managers",
+        "names": [
+          "ManagerTermBase",
+          "SceneEntityCfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.sensors",
+        "names": [
+          "ContactSensor"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.utils.math",
+        "names": [
+          "quat_apply_inverse",
+          "yaw_quat"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.envs",
+        "names": [
+          "ManagerBasedRLEnv"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.managers",
+        "names": [
+          "CurriculumTermCfg"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/mdp/events.py": [
+      {
+        "level": 0,
+        "module": "__future__",
+        "names": [
+          "annotations"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "torch"
+      },
+      {
+        "level": 0,
+        "module": "typing",
+        "names": [
+          "TYPE_CHECKING",
+          "Literal"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.assets",
+        "names": [
+          "Articulation"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.envs.mdp.events",
+        "names": [
+          "_randomize_prop_by_op"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.managers",
+        "names": [
+          "SceneEntityCfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.utils.math"
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.envs",
+        "names": [
+          "ManagerBasedEnv"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/mdp/foundation_phase.py": [
+      {
+        "level": 0,
+        "module": "__future__",
+        "names": [
+          "annotations"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "math"
+      },
+      {
+        "level": 0,
+        "module": "typing",
+        "names": [
+          "TYPE_CHECKING"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "torch"
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.envs",
+        "names": [
+          "ManagerBasedRLEnv"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/mdp/hardware_actions.py": [
+      {
+        "level": 0,
+        "module": "__future__",
+        "names": [
+          "annotations"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "collections.abc",
+        "names": [
+          "Sequence"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "dataclasses",
+        "names": [
+          "MISSING"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "typing",
+        "names": [
+          "TYPE_CHECKING"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "torch"
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.assets.articulation",
+        "names": [
+          "Articulation"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.managers.action_manager",
+        "names": [
+          "ActionTerm",
+          "ActionTermCfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.utils",
+        "names": [
+          "configclass"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.envs",
+        "names": [
+          "ManagerBasedEnv"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/mdp/hardware_contract.py": [
+      {
+        "level": 0,
+        "module": "__future__",
+        "names": [
+          "annotations"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/mdp/hardware_rewards.py": [
+      {
+        "level": 0,
+        "module": "__future__",
+        "names": [
+          "annotations"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "typing",
+        "names": [
+          "TYPE_CHECKING"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "torch"
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.assets",
+        "names": [
+          "Articulation"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.managers",
+        "names": [
+          "SceneEntityCfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.sensors",
+        "names": [
+          "ContactSensor"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.utils.math",
+        "names": [
+          "quat_apply_inverse",
+          "yaw_quat"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite.tasks.locomotion.velocity.mdp.foundation_phase",
+        "names": [
+          "command_synchronized_phase_fraction_v24",
+          "continuous_transfer_phase_fraction_v24",
+          "transfer_half_cycle_shape_v24"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.envs",
+        "names": [
+          "ManagerBasedRLEnv"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/mdp/observations.py": [
+      {
+        "level": 0,
+        "module": "__future__",
+        "names": [
+          "annotations"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "typing",
+        "names": [
+          "TYPE_CHECKING"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "torch"
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.envs",
+        "names": [
+          "ManagerBasedRLEnv"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/mdp/rewards.py": [
+      {
+        "level": 0,
+        "module": "__future__",
+        "names": [
+          "annotations"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "math"
+      },
+      {
+        "level": 0,
+        "module": "torch"
+      },
+      {
+        "level": 0,
+        "module": "typing",
+        "names": [
+          "TYPE_CHECKING"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.managers",
+        "names": [
+          "SceneEntityCfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.sensors",
+        "names": [
+          "ContactSensor"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.utils.math",
+        "names": [
+          "quat_apply",
+          "quat_apply_inverse",
+          "yaw_quat"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.envs",
+        "names": [
+          "ManagerBasedRLEnv"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/mdp/rewards_sm.py": [
+      {
+        "level": 0,
+        "module": "__future__",
+        "names": [
+          "annotations"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "torch"
+      },
+      {
+        "level": 0,
+        "module": "typing",
+        "names": [
+          "TYPE_CHECKING"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.managers",
+        "names": [
+          "SceneEntityCfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.sensors",
+        "names": [
+          "ContactSensor"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.utils.math",
+        "names": [
+          "quat_apply_inverse",
+          "yaw_quat"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.envs",
+        "names": [
+          "ManagerBasedRLEnv"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/mdp/st3215_actions.py": [
+      {
+        "level": 0,
+        "module": "__future__",
+        "names": [
+          "annotations"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "math"
+      },
+      {
+        "level": 0,
+        "module": "collections.abc",
+        "names": [
+          "Sequence"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "dataclasses",
+        "names": [
+          "MISSING"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "torch"
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.managers.action_manager",
+        "names": [
+          "ActionTerm",
+          "ActionTermCfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.utils",
+        "names": [
+          "configclass"
+        ]
+      },
+      {
+        "level": 1,
+        "module": "hardware_actions",
+        "names": [
+          "BoundedDefaultResidualJointPositionAction"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/mdp/st3215_actuator_model.py": [
+      {
+        "level": 0,
+        "module": "__future__",
+        "names": [
+          "annotations"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/mdp/st3215_loaded_actuator_model.py": [
+      {
+        "level": 0,
+        "module": "__future__",
+        "names": [
+          "annotations"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/mdp/terminations.py": [
+      {
+        "level": 0,
+        "module": "__future__",
+        "names": [
+          "annotations"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "torch"
+      },
+      {
+        "level": 0,
+        "module": "typing",
+        "names": [
+          "TYPE_CHECKING"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.assets",
+        "names": [
+          "RigidObject"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.managers",
+        "names": [
+          "SceneEntityCfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.utils.math",
+        "names": [
+          "quat_apply_inverse",
+          "yaw_quat"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.envs",
+        "names": [
+          "ManagerBasedRLEnv"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/velocity_env_cfg.py": [
+      {
+        "level": 0,
+        "module": "dataclasses",
+        "names": [
+          "MISSING"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.sim"
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.assets",
+        "names": [
+          "ArticulationCfg",
+          "AssetBaseCfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.envs",
+        "names": [
+          "ManagerBasedRLEnvCfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.scene",
+        "names": [
+          "InteractiveSceneCfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.sensors",
+        "names": [
+          "ContactSensorCfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.terrains",
+        "names": [
+          "TerrainImporterCfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.utils",
+        "names": [
+          "configclass"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite_assets/littlegreen_humanoid_lite_assets/__init__.py": [],
+    "source/littlegreen_humanoid_lite_assets/littlegreen_humanoid_lite_assets/robots/__init__.py": [
+      {
+        "level": 1,
+        "module": "littlegreen_humanoid_lite",
+        "names": [
+          "*"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite_assets/littlegreen_humanoid_lite_assets/robots/berkeley_humanoid_lite.py": [
+      {
+        "level": 0,
+        "module": "os"
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.sim"
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.actuators",
+        "names": [
+          "ImplicitActuatorCfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.assets.articulation",
+        "names": [
+          "ArticulationCfg"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite_assets/littlegreen_humanoid_lite_assets/robots/lilgreen_humanoid.py": [
+      {
+        "level": 0,
+        "module": "os"
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.sim"
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.actuators",
+        "names": [
+          "ImplicitActuatorCfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.assets.articulation",
+        "names": [
+          "ArticulationCfg"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite_assets/littlegreen_humanoid_lite_assets/robots/littlegreen_humanoid_lite.py": [
+      {
+        "level": 0,
+        "module": "os"
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.sim"
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.actuators",
+        "names": [
+          "ImplicitActuatorCfg"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "isaaclab.assets.articulation",
+        "names": [
+          "ArticulationCfg"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite_assets/postprocess.py": [
+      {
+        "level": 0,
+        "module": "argparse"
+      }
+    ],
+    "source/littlegreen_humanoid_lite_lowlevel/littlegreen_humanoid_lite_lowlevel/__init__.py": [],
+    "source/littlegreen_humanoid_lite_lowlevel/littlegreen_humanoid_lite_lowlevel/policy/__init__.py": [],
+    "source/littlegreen_humanoid_lite_lowlevel/littlegreen_humanoid_lite_lowlevel/policy/config.py": [
+      {
+        "level": 0,
+        "module": "argparse"
+      },
+      {
+        "level": 0,
+        "module": "omegaconf",
+        "names": [
+          "DictConfig",
+          "ListConfig",
+          "OmegaConf"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite_lowlevel/littlegreen_humanoid_lite_lowlevel/policy/gamepad.py": [
+      {
+        "level": 0,
+        "module": "threading"
+      },
+      {
+        "level": 0,
+        "module": "typing",
+        "names": [
+          "Dict"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "inputs",
+        "names": [
+          "get_gamepad"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite_lowlevel/littlegreen_humanoid_lite_lowlevel/policy/rl_controller.py": [
+      {
+        "level": 0,
+        "module": "typing",
+        "names": [
+          "Union"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "abc",
+        "names": [
+          "ABC",
+          "abstractmethod"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "numpy"
+      },
+      {
+        "level": 0,
+        "module": "omegaconf",
+        "names": [
+          "DictConfig",
+          "ListConfig"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "torch"
+      },
+      {
+        "level": 0,
+        "module": "onnxruntime"
+      }
+    ],
+    "source/littlegreen_humanoid_lite_lowlevel/littlegreen_humanoid_lite_lowlevel/policy/rl_controller_lilgreen.py": [
+      {
+        "level": 0,
+        "module": "typing",
+        "names": [
+          "Union"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "abc",
+        "names": [
+          "ABC",
+          "abstractmethod"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "numpy"
+      },
+      {
+        "level": 0,
+        "module": "omegaconf",
+        "names": [
+          "DictConfig",
+          "ListConfig"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "torch"
+      },
+      {
+        "level": 0,
+        "module": "onnxruntime"
+      }
+    ],
+    "source/littlegreen_humanoid_lite_lowlevel/littlegreen_humanoid_lite_lowlevel/policy/udp_joystick_sm.py": [
+      {
+        "level": 0,
+        "module": "socket"
+      },
+      {
+        "level": 0,
+        "module": "struct"
+      },
+      {
+        "level": 0,
+        "module": "time"
+      },
+      {
+        "level": 0,
+        "module": "threading"
+      },
+      {
+        "level": 0,
+        "module": "typing",
+        "names": [
+          "Dict",
+          "Union",
+          "Optional"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "inputs",
+        "names": [
+          "get_gamepad"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "pynput",
+        "names": [
+          "keyboard"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "pynput.keyboard",
+        "names": [
+          "Key"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite_lowlevel/littlegreen_humanoid_lite_lowlevel/recoil/__init__.py": [
+      {
+        "level": 1,
+        "module": "core",
+        "names": [
+          "*"
+        ]
+      },
+      {
+        "level": 1,
+        "module": "util",
+        "names": [
+          "*"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite_lowlevel/littlegreen_humanoid_lite_lowlevel/recoil/can.py": [
+      {
+        "level": 1,
+        "module": "core",
+        "names": [
+          "DataFrame"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite_lowlevel/littlegreen_humanoid_lite_lowlevel/recoil/core.py": [
+      {
+        "level": 0,
+        "module": "math"
+      },
+      {
+        "level": 0,
+        "module": "struct"
+      },
+      {
+        "level": 0,
+        "module": "time"
+      },
+      {
+        "level": 0,
+        "module": "can"
+      }
+    ],
+    "source/littlegreen_humanoid_lite_lowlevel/littlegreen_humanoid_lite_lowlevel/recoil/fixed16.py": [
+      {
+        "level": 0,
+        "module": "struct"
+      }
+    ],
+    "source/littlegreen_humanoid_lite_lowlevel/littlegreen_humanoid_lite_lowlevel/recoil/util.py": [
+      {
+        "level": 0,
+        "module": "argparse"
+      }
+    ],
+    "source/littlegreen_humanoid_lite_lowlevel/littlegreen_humanoid_lite_lowlevel/robot/__init__.py": [
+      {
+        "level": 1,
+        "module": "bimanual",
+        "names": [
+          "Bimanual"
+        ]
+      },
+      {
+        "level": 1,
+        "module": "humanoid",
+        "names": [
+          "Humanoid"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite_lowlevel/littlegreen_humanoid_lite_lowlevel/robot/bimanual.py": [
+      {
+        "level": 0,
+        "module": "struct"
+      },
+      {
+        "level": 0,
+        "module": "time"
+      },
+      {
+        "level": 0,
+        "module": "serial"
+      },
+      {
+        "level": 0,
+        "module": "numpy"
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite_lowlevel.recoil"
+      }
+    ],
+    "source/littlegreen_humanoid_lite_lowlevel/littlegreen_humanoid_lite_lowlevel/robot/humanoid.py": [
+      {
+        "level": 0,
+        "module": "time"
+      },
+      {
+        "level": 0,
+        "module": "omegaconf",
+        "names": [
+          "OmegaConf"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "numpy"
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite_lowlevel.recoil"
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite_lowlevel.robot.imu",
+        "names": [
+          "SerialImu",
+          "Baudrate"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "littlegreen_humanoid_lite_lowlevel.policy.gamepad",
+        "names": [
+          "Se2Gamepad"
+        ]
+      }
+    ],
+    "source/littlegreen_humanoid_lite_lowlevel/littlegreen_humanoid_lite_lowlevel/robot/imu.py": [
+      {
+        "level": 0,
+        "module": "time"
+      },
+      {
+        "level": 0,
+        "module": "struct"
+      },
+      {
+        "level": 0,
+        "module": "threading"
+      },
+      {
+        "level": 0,
+        "module": "numpy"
+      },
+      {
+        "level": 0,
+        "module": "loop_rate_limiters",
+        "names": [
+          "RateLimiter"
+        ]
+      },
+      {
+        "level": 0,
+        "module": "serial"
+      },
+      {
+        "level": 0,
+        "module": "os"
+      },
+      {
+        "level": 0,
+        "module": "psutil"
+      }
+    ]
+  },
+  "registered_task": "Velocity-Lilgreen-Locomotion-ST3215-Loaded-v110",
+  "retained_usd_assets": [
+    "source/littlegreen_humanoid_lite_assets/data/usd/berkeley_humanoid_lite.usd",
+    "source/littlegreen_humanoid_lite_assets/data/usd/lilgreen_1body_base.usd",
+    "source/littlegreen_humanoid_lite_assets/data/usd/lilgreen.usd",
+    "source/littlegreen_humanoid_lite_assets/data/usd/lilgreen_mass_v2926.usd",
+    "source/littlegreen_humanoid_lite_assets/data/usd/berkeley_humanoid_lite_biped.usd"
+  ],
+  "source_sha256": "eed89f1afb6e411a5a2c220701eca5b42a5a2da1185b92180edade726304d65f",
+  "usd_reference_validation": "NOT_RUN_usdcat_or_omni_runtime_unavailable"
+}

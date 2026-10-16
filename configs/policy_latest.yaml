@@ -1,23 +1,41 @@
+schema_version: 2
 metadata:
-  exported_at: '2026-07-14T16:35:32'
-  task: Velocity-Lilgreen-Hardware-ST3215-Loaded-v7
-  checkpoint_path: policy.onnx
-  export_dir: configs
-  policy_filename: policy.onnx
-  policy_format: onnx
-  policy_sha256: 3e663fbde931d8056fe8461a19a6d7bc759329d9c36b3418e4bb3a95196bf627
   project_name: Littlegreen-Humanoid-Lite
-  project_version: 2.0.0
+  project_version: 11.0.0
   training_package: littlegreen_humanoid_lite
   asset_package: littlegreen_humanoid_lite_assets
-  source_project_name: Berkeley-Humanoid-Lite
-  source_project_version: 1.4.8
-  source_checkpoint_path: /home/scott/Berkeley-Humanoid-Lite/logs/rsl_rl/lilgreen_v1_4_7_st3215_phase_guided/2026-07-14_09-32-46_hardware_st3215_loaded_v147_phase_guided_from_v145s3_stand3500_seed42/model_4999.pt
-  source_export_dir: /home/scott/Berkeley-Humanoid-Lite/logs/rsl_rl/lilgreen_v1_4_7_st3215_phase_guided/2026-07-14_09-32-46_hardware_st3215_loaded_v147_phase_guided_from_v145s3_stand3500_seed42/exported
-policy_checkpoint_path: policy.onnx
+  source_lineage: Berkeley-Humanoid-Lite v1.4.8 renamed and evolved
+  exported_at_utc: '2026-10-16T19:42:16Z'
+  task: Velocity-Lilgreen-Locomotion-ST3215-Loaded-v110
+  task_role: locomotion
+  training_release: 11.0.0
+  experiment_name: littlegreen_v11_0_0_clean_core_bilateral_acquisition_fresh
+  load_run: 2026-10-16_12-25-41_v11_250_qualification
+  checkpoint: model_249.pt
+  checkpoint_path: /home/scott/Littlegreen-Humanoid-Lite/logs/rsl_rl/littlegreen_v11_0_0_clean_core_bilateral_acquisition_fresh/2026-10-16_12-25-41_v11_250_qualification/model_249.pt
+  export_dir: /home/scott/Littlegreen-Humanoid-Lite/logs/rsl_rl/littlegreen_v11_0_0_clean_core_bilateral_acquisition_fresh/2026-10-16_12-25-41_v11_250_qualification/exported
+  policy_filename: policy.onnx
+  policy_format: onnx
+  policy_sha256: fcb818d22054cdb8512578c67d7c71f28c16fffab1add52ad07915880a29d9a2
+  publication_kind: project_latest
+  published_at_utc: '2026-10-16T19:42:17Z'
+  published_policy_path: /home/scott/Littlegreen-Humanoid-Lite/configs/policy.onnx
+policy_checkpoint_path: /home/scott/Littlegreen-Humanoid-Lite/configs/policy.onnx
 policy_checkpoint_relative_path: policy.onnx
 policy_checkpoint_filename: policy.onnx
-policy_sha256: 3e663fbde931d8056fe8461a19a6d7bc759329d9c36b3418e4bb3a95196bf627
+policy_sha256: fcb818d22054cdb8512578c67d7c71f28c16fffab1add52ad07915880a29d9a2
+onnx_input_name: obs
+onnx_input_shape:
+- 1
+- 47
+onnx_input_type: tensor(float)
+onnx_output_name: actions
+onnx_output_shape:
+- 1
+- 12
+onnx_output_type: tensor(float)
+onnx_validator: onnxruntime
+onnx_validator_version: 1.31.0
 ip_robot_addr: 127.0.0.1
 ip_policy_obs_port: 10000
 ip_host_addr: 127.0.0.1
@@ -26,6 +44,8 @@ control_dt: 0.02
 policy_dt: 0.02
 physics_dt: 0.005
 decimation: 4
+physics_hz: 200
+policy_hz: 50
 num_joints: 14
 joints:
 - leg_left_hip_roll_joint
@@ -43,34 +63,34 @@ joints:
 - leg_right_ankle_roll_joint
 - leg_right_toe_pitch_joint
 joint_kp:
-- 12.0
-- 12.0
-- 12.0
-- 12.0
-- 12.0
-- 12.0
+- 18.0
+- 18.0
+- 18.0
+- 18.0
+- 18.0
+- 18.0
 - 0.009999999776482582
-- 12.0
-- 12.0
-- 12.0
-- 12.0
-- 12.0
-- 12.0
+- 18.0
+- 18.0
+- 18.0
+- 18.0
+- 18.0
+- 18.0
 - 0.009999999776482582
 joint_kd:
-- 2.0
-- 2.0
-- 2.0
-- 2.0
-- 2.0
-- 2.0
+- 1.5
+- 1.5
+- 1.5
+- 1.5
+- 1.5
+- 1.5
 - 0.05000000074505806
-- 2.0
-- 2.0
-- 2.0
-- 2.0
-- 2.0
-- 2.0
+- 1.5
+- 1.5
+- 1.5
+- 1.5
+- 1.5
+- 1.5
 - 0.05000000074505806
 effort_limits:
 - 2.940000057220459
@@ -106,12 +126,6 @@ default_joint_positions:
 - -0.22
 - 0.0
 - 0.0
-num_observations: 47
-history_length: 0
-command_velocity:
-- -0.11624844372272491
-- -0.07480256259441376
-- -0.027562296018004417
 num_actions: 12
 action_indices:
 - 0
@@ -126,10 +140,102 @@ action_indices:
 - 10
 - 11
 - 12
+action_joint_names:
+- leg_left_hip_roll_joint
+- leg_left_hip_yaw_joint
+- leg_left_hip_pitch_joint
+- leg_left_knee_pitch_joint
+- leg_left_ankle_pitch_joint
+- leg_left_ankle_roll_joint
+- leg_right_hip_roll_joint
+- leg_right_hip_yaw_joint
+- leg_right_hip_pitch_joint
+- leg_right_knee_pitch_joint
+- leg_right_ankle_pitch_joint
+- leg_right_ankle_roll_joint
+num_observations: 47
+critic_num_observations: 50
+history_length: 0
+observation_contract_version: 1
+observation_contract_name: littlegreen_velocity_47d_phase_v1
+observation_layout: command3,base_ang_vel3,projected_gravity3,joint_pos_rel12,joint_vel12,previous_bounded_action12,phase_sin1,phase_cos1
+observation_layout_ranges:
+  command_velocity:
+  - 0
+  - 2
+  base_angular_velocity:
+  - 3
+  - 5
+  projected_gravity:
+  - 6
+  - 8
+  joint_position_relative_default:
+  - 9
+  - 20
+  joint_velocity:
+  - 21
+  - 32
+  previous_bounded_action:
+  - 33
+  - 44
+  phase_sin_cos:
+  - 45
+  - 46
+observation_count: 47
+critic_observation_count: 50
+phase_indices:
+- 45
+- 46
+phase_encoding: sin_cos_2pi
+phase_mode: neutral_static
+phase_source_function: littlegreen_phase_sin_cos_v24
+phase_period_s: 0.9
+phase_period_active: false
+phase_constant_sin_cos:
+- 0.0
+- 1.0
+deployment_curriculum_stage: null
+phase_period_source: inactive_neutral_static_metadata_only
+phase_transition_fraction: 0.1
+phase_linear_command_threshold: 0.08
+phase_yaw_command_threshold: 0.08
+phase_reset_semantics: constant_neutral_phase_sin0_cos1_for_all_environments_and_ticks
+shared_47d_stand_walk_contract: true
+shared_47d_foundation_contract: true
+stand_transfer_walk_observation_difference: phase_evolution_only
+legacy_45d_checkpoint_support: false
+deployment_requires_shared_47d_observation_builder: true
+deployment_requires_random_static_phase_for_stand: false
+deployment_requires_continuous_transfer_phase: false
+deployment_requires_command_synchronized_phase_for_walk: false
+deployment_requires_neutral_static_phase_for_locomotion: true
+command_velocity:
+- 0.0
+- 0.0
+- 0.0
+command_contract_version: 1
+command_velocity_source: runtime_command_input
+command_limit_lin_vel_x:
+- 0.12
+- 0.3
+command_limit_lin_vel_y:
+- 0.0
+- 0.0
+command_limit_ang_vel_z:
+- 0.0
+- 0.0
+deployment_requires_command_clamp: true
+command_limit_behavior: clamp_each_axis_to_training_range
+command_training_profile: v10_3_1_forward_bilateral_acquisition
+command_resampling_time_range_s:
+- 6.0
+- 10.0
+command_rel_standing_envs: 0.12
 action_contract_version: 4
 action_contract_name: bounded_default_centered_vector_residual_athletic
 action_transform: bounded_default_centered_vector_residual
-action_equation: q_target = clip(q_default + clip(a_raw,-1,1) * residual_scale_rad, physical_lower, physical_upper)
+action_equation: q_target = clip(q_default + clip(a_raw,-1,1) * residual_scale_rad,
+  physical_lower, physical_upper)
 action_limit_lower: -1.0
 action_limit_upper: 1.0
 action_residual_scale_rad:
@@ -212,10 +318,11 @@ action_default_rad:
 - 0.0
 previous_action_observation: bounded_normalized_action
 deployment_requires_action_contract_transform: true
-deployment_requires_action_contract_v3_transform: false
 deployment_requires_action_contract_v4_transform: true
 deployment_contract_profile: v1_4_5_stabilized_vector_residual
+training_release_profile: v10_3_1_forward_bilateral_acquisition
 training_actuator_model_name: littlegreen_humanoid_lite_st3215_track1_actuator_identification_v2:stage_a_athletic_stabilized+track1_loaded_actuator_extension_v2:stage_b_loaded_athletic_stabilized
+training_actuator_model_source_name: berkeley_humanoid_lite_st3215_track1_actuator_identification_v2:stage_a_athletic_stabilized+track1_loaded_actuator_extension_v2:stage_b_loaded_athletic_stabilized
 training_actuator_model_stage: stage_b_loaded_v145_stabilized_vector_residual
 training_actuator_bus_phase_delay_s_range:
 - 0.0
@@ -365,6 +472,5 @@ training_loaded_return_tau_scale:
 training_loaded_velocity_scale_range:
 - 1.0
 - 1.1
-training_loaded_envelope_interpretation: empirical loaded whole-body trajectory envelope; not an intrinsic motor speed, torque-speed,
-  stiffness, or damping model
-training_actuator_model_source_name: berkeley_humanoid_lite_st3215_track1_actuator_identification_v2:stage_a_athletic_stabilized+track1_loaded_actuator_extension_v2:stage_b_loaded_athletic_stabilized
+training_loaded_envelope_interpretation: empirical loaded whole-body trajectory envelope;
+  not an intrinsic motor speed, torque-speed, stiffness, or damping model

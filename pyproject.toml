@@ -1,6 +1,6 @@
 [project]
 name = "littlegreen-humanoid-lite-workspace"
-version = "2.0.0"
+version = "11.0.0"
 description = "Isaac Lab and RSL-RL workspace for Littlegreen Humanoid Lite"
 readme = "README.md"
 requires-python = ">=3.10,<3.11"
@@ -147,3 +147,8 @@ explicit = true
 name = "nvidia"
 url = "https://pypi.nvidia.com"
 explicit = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+norecursedirs = [".git", "logs", "outputs", "checkpoints", "archive", "__pycache__"]

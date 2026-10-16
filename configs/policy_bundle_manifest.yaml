@@ -1,0 +1,17 @@
+schema_version: 2
+project_name: Littlegreen-Humanoid-Lite
+project_version: 11.0.0
+task: Velocity-Lilgreen-Locomotion-ST3215-Loaded-v110
+created_at_utc: '2026-10-16T19:42:17Z'
+files:
+  onnx:
+    filename: policy.onnx
+    sha256: fcb818d22054cdb8512578c67d7c71f28c16fffab1add52ad07915880a29d9a2
+  yaml:
+    filename: policy_latest.yaml
+    sha256: 87a5bc11fa5bec155ee4a6c153f8320679651f9898468a3c50e22dde99c8ecbf
+interface:
+  observations: 47
+  actions: 12
+  action_contract_version: 4
+  phase_mode: neutral_static

@@ -69,6 +69,27 @@ class PolicyDiagnostics(ManagerTermBase):
         foot_contact = forces.norm(dim=-1).max(dim=1)[0] > 1.0
         both_feet = torch.all(foot_contact, dim=1)
 
+        # Balanced-stand diagnostics use vertical support force, not total contact
+        # magnitude, so tangential friction does not look like body-weight support.
+        vertical_force = torch.clamp(forces[..., 2], min=0.0).mean(dim=1)
+        foot_names = [asset.body_names[index] for index in foot_asset_cfg.body_ids]
+        left_foot_index = next((i for i, name in enumerate(foot_names) if "left" in name), 0)
+        right_foot_index = next((i for i, name in enumerate(foot_names) if "right" in name), min(1, len(foot_names) - 1))
+        left_vertical_force = vertical_force[:, left_foot_index]
+        right_vertical_force = vertical_force[:, right_foot_index]
+        total_vertical_force = left_vertical_force + right_vertical_force
+        left_load_fraction = left_vertical_force / torch.clamp(total_vertical_force, min=1.0e-6)
+        normalized_load_imbalance = torch.abs(left_vertical_force - right_vertical_force) / torch.clamp(
+            total_vertical_force, min=1.0e-6
+        )
+
+        foot_xy = asset.data.body_pos_w[:, foot_asset_cfg.body_ids, :2]
+        foot_midpoint_xy = torch.mean(foot_xy, dim=1)
+        com_delta_w = torch.zeros(asset.data.root_com_pos_w.shape[0], 3, device=asset.data.root_com_pos_w.device)
+        com_delta_w[:, :2] = asset.data.root_com_pos_w[:, :2] - foot_midpoint_xy
+        com_delta_yaw = quat_apply_inverse(yaw_quat(asset.data.root_quat_w), com_delta_w)
+        com_lateral_offset = com_delta_yaw[:, 1]
+
         # Stability and posture conformity are intentionally separate. A policy can
         # stand robustly in a non-default crouch; that must not be reported as a
         # standing failure merely because posture shaping is not yet satisfied.
@@ -105,7 +126,34 @@ class PolicyDiagnostics(ManagerTermBase):
         torque_soft_fraction = torch.mean((torque_utilization > torque_soft_ratio).float())
         torque_limit_fraction = torch.mean((torque_utilization >= 0.95).float())
 
+        joint_names = list(action_term.joint_names)
+        left_sagittal_ids = [
+            i for i, name in enumerate(joint_names)
+            if "leg_left_" in name and any(token in name for token in ("hip_pitch", "knee_pitch", "ankle_pitch"))
+        ]
+        right_sagittal_ids = [
+            i for i, name in enumerate(joint_names)
+            if "leg_right_" in name and any(token in name for token in ("hip_pitch", "knee_pitch", "ankle_pitch"))
+        ]
+        if left_sagittal_ids and right_sagittal_ids:
+            left_sagittal_torque_abs = torch.mean(torque_abs[:, left_sagittal_ids], dim=1)
+            right_sagittal_torque_abs = torch.mean(torque_abs[:, right_sagittal_ids], dim=1)
+            left_sagittal_soft = torch.mean((torque_utilization[:, left_sagittal_ids] > torque_soft_ratio).float(), dim=1)
+            right_sagittal_soft = torch.mean((torque_utilization[:, right_sagittal_ids] > torque_soft_ratio).float(), dim=1)
+            left_sagittal_limit = torch.mean((torque_utilization[:, left_sagittal_ids] >= 0.95).float(), dim=1)
+            right_sagittal_limit = torch.mean((torque_utilization[:, right_sagittal_ids] >= 0.95).float(), dim=1)
+        else:
+            zeros = torch.zeros(self.num_envs, device=self.device)
+            left_sagittal_torque_abs = zeros
+            right_sagittal_torque_abs = zeros
+            left_sagittal_soft = zeros
+            right_sagittal_soft = zeros
+            left_sagittal_limit = zeros
+            right_sagittal_limit = zeros
+
         standing_count = torch.clamp(torch.sum(standing), min=1)
+        standing_loaded = standing & (left_vertical_force > 1.0) & (right_vertical_force > 1.0)
+        standing_loaded_count = torch.clamp(torch.sum(standing_loaded), min=1)
         stable_success_10 = torch.sum((self._stable_standing_age >= 10.0) & standing) / standing_count
         stable_success_20 = torch.sum((self._stable_standing_age >= 20.0) & standing) / standing_count
         posture_success_10 = torch.sum((self._posture_conforming_age >= 10.0) & standing) / standing_count
@@ -215,6 +263,25 @@ class PolicyDiagnostics(ManagerTermBase):
             "base_com_height_mean_m": torch.mean(base_com_height),
             "standing_base_com_height_mean_m": torch.sum(base_com_height * standing) / standing_count,
             "standing_base_com_height_error_mean_m": torch.sum(base_com_height_error * standing) / standing_count,
+            "standing_double_support_loaded_fraction": torch.sum(standing_loaded.float()) / standing_count,
+            "standing_left_vertical_load_mean_n": torch.sum(left_vertical_force * standing_loaded) / standing_loaded_count,
+            "standing_right_vertical_load_mean_n": torch.sum(right_vertical_force * standing_loaded) / standing_loaded_count,
+            "standing_left_load_fraction_mean": torch.sum(left_load_fraction * standing_loaded) / standing_loaded_count,
+            "standing_right_load_fraction_mean": torch.sum((1.0 - left_load_fraction) * standing_loaded) / standing_loaded_count,
+            "standing_vertical_load_imbalance_abs_mean": torch.sum(normalized_load_imbalance * standing_loaded) / standing_loaded_count,
+            "standing_left_heavy_fraction": torch.sum(((left_load_fraction > 0.60) & standing_loaded).float()) / standing_loaded_count,
+            "standing_right_heavy_fraction": torch.sum(((left_load_fraction < 0.40) & standing_loaded).float()) / standing_loaded_count,
+            "standing_com_lateral_offset_mean_m": torch.sum(com_lateral_offset * standing) / standing_count,
+            "standing_com_lateral_offset_abs_mean_m": torch.sum(torch.abs(com_lateral_offset) * standing) / standing_count,
+            "standing_left_sagittal_torque_abs_mean_nm": torch.sum(left_sagittal_torque_abs * standing) / standing_count,
+            "standing_right_sagittal_torque_abs_mean_nm": torch.sum(right_sagittal_torque_abs * standing) / standing_count,
+            "standing_sagittal_torque_abs_imbalance_mean_nm": torch.sum(
+                torch.abs(left_sagittal_torque_abs - right_sagittal_torque_abs) * standing
+            ) / standing_count,
+            "standing_left_sagittal_soft_fraction": torch.sum(left_sagittal_soft * standing) / standing_count,
+            "standing_right_sagittal_soft_fraction": torch.sum(right_sagittal_soft * standing) / standing_count,
+            "standing_left_sagittal_limit_fraction": torch.sum(left_sagittal_limit * standing) / standing_count,
+            "standing_right_sagittal_limit_fraction": torch.sum(right_sagittal_limit * standing) / standing_count,
             "linear_velocity_tracking_rmse_mps": torch.sqrt(torch.mean(torch.square(lin_tracking_error))),
             "yaw_rate_tracking_rmse_rad_s": torch.sqrt(torch.mean(torch.square(yaw_tracking_error))),
             "one_step_delay_env_fraction": torch.mean(action_term.delay_one_step.float()),

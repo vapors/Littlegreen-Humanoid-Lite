@@ -1,0 +1,99 @@
+{
+  "input_sha256": "d2908941a3f2affc38749878982778ac4a792ddeff97744cc26a01208b8d30ca",
+  "original": "/home/scott/Littlegreen-Humanoid-Lite/source/littlegreen_humanoid_lite_assets/data/usd/lilgreen.usd",
+  "corrected": "/home/scott/Littlegreen-Humanoid-Lite/source/littlegreen_humanoid_lite_assets/data/usd/lilgreen_mass_v2926.usd",
+  "total_kg": 3.8519999757409096,
+  "links": {
+    "base": {
+      "prim": "/berkeley_humanoid_lite/base",
+      "old_mass_kg": 2.8938732147216797,
+      "new_mass_kg": 1.252,
+      "inertia_scale": 0.432638165912328
+    },
+    "leg_left_hip_roll": {
+      "prim": "/berkeley_humanoid_lite/leg_left_hip_roll",
+      "old_mass_kg": 0.3807019293308258,
+      "new_mass_kg": 0.175,
+      "inertia_scale": 0.45967720811818347
+    },
+    "leg_left_hip_yaw": {
+      "prim": "/berkeley_humanoid_lite/leg_left_hip_yaw",
+      "old_mass_kg": 0.33291417360305786,
+      "new_mass_kg": 0.175,
+      "inertia_scale": 0.5256610077787105
+    },
+    "leg_left_hip_pitch": {
+      "prim": "/berkeley_humanoid_lite/leg_left_hip_pitch",
+      "old_mass_kg": 2.558626413345337,
+      "new_mass_kg": 0.3,
+      "inertia_scale": 0.11725041156272512
+    },
+    "leg_left_knee_pitch": {
+      "prim": "/berkeley_humanoid_lite/leg_left_knee_pitch",
+      "old_mass_kg": 0.28231796622276306,
+      "new_mass_kg": 0.25,
+      "inertia_scale": 0.8855263564867758
+    },
+    "leg_left_ankle_pitch": {
+      "prim": "/berkeley_humanoid_lite/leg_left_ankle_pitch",
+      "old_mass_kg": 0.11561362445354462,
+      "new_mass_kg": 0.175,
+      "inertia_scale": 1.5136624323227386
+    },
+    "leg_left_ankle_roll": {
+      "prim": "/berkeley_humanoid_lite/leg_left_ankle_roll",
+      "old_mass_kg": 0.15237392485141754,
+      "new_mass_kg": 0.175,
+      "inertia_scale": 1.1484904662700361
+    },
+    "leg_left_toe_pitch": {
+      "prim": "/berkeley_humanoid_lite/leg_left_toe_pitch",
+      "old_mass_kg": 0.030347896739840508,
+      "new_mass_kg": 0.05,
+      "inertia_scale": 1.6475606342221518
+    },
+    "leg_right_hip_roll": {
+      "prim": "/berkeley_humanoid_lite/leg_right_hip_roll",
+      "old_mass_kg": 0.3807018995285034,
+      "new_mass_kg": 0.175,
+      "inertia_scale": 0.45967724410289584
+    },
+    "leg_right_hip_yaw": {
+      "prim": "/berkeley_humanoid_lite/leg_right_hip_yaw",
+      "old_mass_kg": 0.33291417360305786,
+      "new_mass_kg": 0.175,
+      "inertia_scale": 0.5256610077787105
+    },
+    "leg_right_hip_pitch": {
+      "prim": "/berkeley_humanoid_lite/leg_right_hip_pitch",
+      "old_mass_kg": 2.558626413345337,
+      "new_mass_kg": 0.3,
+      "inertia_scale": 0.11725041156272512
+    },
+    "leg_right_knee_pitch": {
+      "prim": "/berkeley_humanoid_lite/leg_right_knee_pitch",
+      "old_mass_kg": 0.2823180556297302,
+      "new_mass_kg": 0.25,
+      "inertia_scale": 0.8855260760504937
+    },
+    "leg_right_ankle_pitch": {
+      "prim": "/berkeley_humanoid_lite/leg_right_ankle_pitch",
+      "old_mass_kg": 0.11561362445354462,
+      "new_mass_kg": 0.175,
+      "inertia_scale": 1.5136624323227386
+    },
+    "leg_right_ankle_roll": {
+      "prim": "/berkeley_humanoid_lite/leg_right_ankle_roll",
+      "old_mass_kg": 0.15237292647361755,
+      "new_mass_kg": 0.175,
+      "inertia_scale": 1.1484979914085995
+    },
+    "leg_right_toe_pitch": {
+      "prim": "/berkeley_humanoid_lite/leg_right_toe_pitch",
+      "old_mass_kg": 0.03034789115190506,
+      "new_mass_kg": 0.05,
+      "inertia_scale": 1.6475609375863107
+    }
+  },
+  "caveats": "Provisional estimated masses; existing COM preserved, inertias scaled proportional to mass; Isaac Lab runtime verification required."
+}

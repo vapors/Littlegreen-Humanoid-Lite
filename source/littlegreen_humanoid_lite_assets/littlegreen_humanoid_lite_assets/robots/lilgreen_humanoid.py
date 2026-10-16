@@ -60,7 +60,7 @@ LILGREEN_JOINTS = LILGREEN_LEG_JOINTS
 
 LILGREEN_BIPED_CFG = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
-        usd_path=f"{ISAACLAB_ASSET_DIR}/usd/lilgreen.usd",
+        usd_path=f"{ISAACLAB_ASSET_DIR}/usd/lilgreen_mass_v2926.usd",
         activate_contact_sensors=True,
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             disable_gravity=False,
@@ -144,7 +144,7 @@ LILGREEN_BIPED_CFG = ArticulationCfg(
 
 LILGREEN_CFG = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
-        usd_path=f"{ISAACLAB_ASSET_DIR}/usd/lilgreen.usd",
+        usd_path=f"{ISAACLAB_ASSET_DIR}/usd/lilgreen_mass_v2926.usd",
         activate_contact_sensors=True,
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             disable_gravity=False,

@@ -1,7 +1,0 @@
-pyserial
-python-can
-cc.udp
-onnxruntime
-inputs
-pynput
-tables

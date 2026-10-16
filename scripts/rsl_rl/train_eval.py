@@ -32,13 +32,19 @@ parser.add_argument(
     "--policy_only_warm_start",
     action="store_true",
     default=False,
-    help="Load actor/action-std and observation normalization from the resume checkpoint, but reset critic/optimizer.",
+    help="Load an exact-shape 47-D foundation actor/action-std checkpoint, but reset critic and optimizer.",
+)
+parser.add_argument(
+    "--reset_action_std",
+    action="store_true",
+    default=False,
+    help="With --policy_only_warm_start, keep the destination task's fresh action std instead of copying checkpoint std.",
 )
 parser.add_argument(
     "--resume_log_root",
     type=str,
     default=None,
-    help="Optional logs/rsl_rl/<experiment> root to search for --load_run when warm-starting from another task family.",
+    help="Optional logs/rsl_rl/<experiment> root for exact-shape Stand-to-Transfer or Transfer-to-Walk policy-only transfer.",
 )
 # append RSL-RL cli arguments
 cli_args.add_rsl_rl_args(parser)
@@ -110,6 +116,61 @@ torch.backends.cudnn.benchmark = False
 
 
 
+
+import hashlib
+import json
+from pathlib import Path
+
+CANONICAL_TASK = "Velocity-Lilgreen-Locomotion-ST3215-Loaded-v110"
+CANONICAL_EXPERIMENT = "littlegreen_v11_0_0_clean_core_bilateral_acquisition_fresh"
+
+def _source_contract_fingerprints():
+    """Hash runtime-critical code and static contract; excludes mutable logs."""
+    root = Path(__file__).resolve().parents[2]
+    rels = [
+        "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/config/littlegreen_humanoid/tasks/locomotion.py",
+        "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/config/littlegreen_humanoid/rewards/locomotion.py",
+        "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/config/littlegreen_humanoid/agents/rsl_rl_ppo_cfg.py",
+        "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/config/littlegreen_humanoid/actions_cfg.py",
+        "source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/config/littlegreen_humanoid/observations_cfg.py",
+        "source/littlegreen_humanoid_lite_assets/data/usd/lilgreen_mass_v2926.usd",
+        "manifests/CONTRACT_V11.json",
+    ]
+    # Include all runtime Python code, not just its public entrypoints.
+    rels += [str(p.relative_to(root)) for p in sorted((root/"source/littlegreen_humanoid_lite/littlegreen_humanoid_lite").rglob("*.py"))]
+    rels += ["scripts/rsl_rl/train_eval.py"]
+    rels += ["source/littlegreen_humanoid_lite_assets/littlegreen_humanoid_lite_assets/robots/lilgreen_humanoid.py"]
+    rels = sorted(set(rels))
+    return {p: hashlib.sha256((root/p).read_bytes()).hexdigest() for p in rels}
+
+def _write_run_snapshot(log_dir, agent_cfg, env_cfg):
+    snapshot = {"task": CANONICAL_TASK, "experiment": CANONICAL_EXPERIMENT,
+                "source": _source_contract_fingerprints(),
+                "policy_architecture": list(agent_cfg.policy.actor_hidden_dims),
+                "critic_architecture": list(agent_cfg.policy.critic_hidden_dims),
+                "physics_dt": float(env_cfg.sim.dt), "decimation": int(env_cfg.decimation),
+                "policy_noise": float(agent_cfg.policy.init_noise_std),
+                "empirical_normalization": bool(agent_cfg.empirical_normalization)}
+    with open(os.path.join(log_dir, "run_contract_v11.json"), "w") as f:
+        json.dump(snapshot, f, indent=2, sort_keys=True)
+
+def _verify_resume_snapshot(checkpoint_path, agent_cfg, env_cfg):
+    run_dir = Path(checkpoint_path).resolve().parent
+    manifest = run_dir/"run_contract_v11.json"
+    if not manifest.exists():
+        raise RuntimeError(f"Refusing unchecked checkpoint: missing {manifest}")
+    recorded = json.loads(manifest.read_text())
+    expected = {"task": CANONICAL_TASK, "experiment": CANONICAL_EXPERIMENT,
+                "source": _source_contract_fingerprints(),
+                "policy_architecture": list(agent_cfg.policy.actor_hidden_dims),
+                "critic_architecture": list(agent_cfg.policy.critic_hidden_dims),
+                "physics_dt": float(env_cfg.sim.dt), "decimation": int(env_cfg.decimation),
+                "policy_noise": float(agent_cfg.policy.init_noise_std),
+                "empirical_normalization": bool(agent_cfg.empirical_normalization)}
+    if recorded != expected:
+        differences = [k for k in expected if expected[k] != recorded.get(k)]
+        raise RuntimeError("v11 resume contract mismatch: " + ", ".join(differences))
+    print("[CONTRACT] v11 same-experiment resume provenance verified", flush=True)
 
 def _candidate_state_dict(obj):
     """Return an object's state_dict if it behaves like a torch module."""
@@ -204,13 +265,12 @@ def _find_actor_critic_module(runner, model_state):
     return module
 
 
-def _load_policy_only_warm_start(runner: OnPolicyRunner, checkpoint_path: str, device: str | torch.device):
-    """Load actor-side policy weights without carrying critic/optimizer state.
+def _load_policy_only_warm_start(runner: OnPolicyRunner, checkpoint_path: str, device: str | torch.device, reset_action_std: bool = False):
+    """Load an exact-shape actor while keeping the critic and optimizer fresh.
 
-    RSL-RL checkpoint formats vary slightly across versions. This helper keeps any
-    matching non-critic tensors from the saved actor_critic state dict, including
-    action standard deviation, and intentionally leaves critic/optimizer freshly
-    initialized for a new Hardware objective.
+    The active Stand, Transfer, and Walk actors all consume 47 observations.  This loader
+    intentionally performs no 45-to-47 expansion, prefix copying, or legacy
+    normalization surgery.  A shape mismatch is treated as a contract error.
     """
     checkpoint = torch.load(checkpoint_path, map_location=device)
     model_state = None
@@ -219,18 +279,16 @@ def _load_policy_only_warm_start(runner: OnPolicyRunner, checkpoint_path: str, d
         if isinstance(maybe, dict):
             model_state = maybe
             break
-    if model_state is None and isinstance(checkpoint, dict):
-        # Some checkpoints are raw state_dicts.
-        if all(isinstance(k, str) for k in checkpoint.keys()):
-            model_state = checkpoint
+    if model_state is None and isinstance(checkpoint, dict) and all(isinstance(k, str) for k in checkpoint.keys()):
+        model_state = checkpoint
     if model_state is None:
         raise RuntimeError(f"Could not find model state dict in checkpoint: {checkpoint_path}")
 
     actor_critic = _find_actor_critic_module(runner, model_state)
     current = actor_critic.state_dict()
     loaded = []
-    partial_loaded = []
     skipped = []
+    mismatched = []
     for key, value in model_state.items():
         if key not in current:
             skipped.append(key)
@@ -238,38 +296,23 @@ def _load_policy_only_warm_start(runner: OnPolicyRunner, checkpoint_path: str, d
         if key.startswith("critic") or ".critic" in key or key.startswith("value") or ".value" in key:
             skipped.append(key)
             continue
-        if tuple(current[key].shape) == tuple(value.shape):
-            current[key] = value.to(device=current[key].device, dtype=current[key].dtype)
-            loaded.append(key)
+        if reset_action_std and (key == "std" or key == "log_std" or key.endswith(".std") or key.endswith(".log_std")):
+            skipped.append(key)
             continue
-        # Phase-guided tasks expand the actor input (45-D -> 47-D). Copy the
-        # checkpoint columns exactly and initialize every newly added observation
-        # column to zero. The initial expanded actor is therefore mathematically
-        # equivalent to the source Stand policy; gradients can introduce phase
-        # dependence gradually instead of injecting random phase behavior at step 0.
-        if (
-            hasattr(value, "ndim")
-            and value.ndim == 2
-            and current[key].ndim == 2
-            and current[key].shape[0] == value.shape[0]
-            and current[key].shape[1] > value.shape[1]
-            and (key.startswith("actor") or ".actor" in key or "mlp" in key or "policy" in key)
-        ):
-            expanded = torch.zeros_like(current[key])
-            expanded[:, : value.shape[1]] = value.to(device=current[key].device, dtype=current[key].dtype)
-            current[key] = expanded
-            added_columns = int(expanded.shape[1] - value.shape[1])
-            partial_loaded.append(
-                f"{key}: {tuple(value.shape)} -> {tuple(expanded.shape)} "
-                f"({added_columns} new input columns zero-initialized)"
-            )
+        if tuple(current[key].shape) != tuple(value.shape):
+            mismatched.append(f"{key}: checkpoint={tuple(value.shape)} current={tuple(current[key].shape)}")
             continue
-        skipped.append(key)
+        current[key] = value.to(device=current[key].device, dtype=current[key].dtype)
+        loaded.append(key)
+
+    if mismatched:
+        raise RuntimeError(
+            "Policy-only warm start rejected an incompatible observation/action contract. "
+            "LittleGreen accepts exact-shape 47-D checkpoints only. Mismatches: "
+            + "; ".join(mismatched)
+        )
     actor_critic.load_state_dict(current, strict=True)
 
-    # Preserve observation normalization if present.  When the observation dimension
-    # expands (45-D -> 47-D for v1.4.7 phase), copy the shared prefix and leave the
-    # new phase dimensions at the freshly initialized normalization defaults.
     norm_state = None
     if isinstance(checkpoint, dict):
         for key in ("empirical_normalization_state_dict", "obs_normalizer_state_dict", "normalizer_state_dict"):
@@ -277,45 +320,27 @@ def _load_policy_only_warm_start(runner: OnPolicyRunner, checkpoint_path: str, d
                 norm_state = checkpoint[key]
                 break
     if norm_state is not None:
+        loaded_norm = False
         for attr in ("empirical_normalization", "obs_normalizer", "normalizer"):
             module = getattr(runner, attr, None)
-            if module is None or not hasattr(module, "load_state_dict") or not hasattr(module, "state_dict"):
+            if module is None or not hasattr(module, "load_state_dict"):
                 continue
             try:
-                module.load_state_dict(norm_state)
-                print(f"[INFO]: Loaded observation normalization via runner.{attr}")
+                module.load_state_dict(norm_state, strict=True)
+                print(f"[INFO]: Loaded exact-shape observation normalization via runner.{attr}")
+                loaded_norm = True
                 break
             except Exception as exc:
-                try:
-                    current_norm = module.state_dict()
-                    merged = dict(current_norm)
-                    norm_partial = []
-                    for key, value in norm_state.items():
-                        if key not in merged or not hasattr(value, "shape") or not hasattr(merged[key], "shape"):
-                            continue
-                        if tuple(merged[key].shape) == tuple(value.shape):
-                            merged[key] = value.to(device=merged[key].device, dtype=merged[key].dtype)
-                        elif (
-                            value.ndim == 1
-                            and merged[key].ndim == 1
-                            and merged[key].shape[0] > value.shape[0]
-                        ):
-                            tmp = merged[key].clone()
-                            tmp[: value.shape[0]] = value.to(device=tmp.device, dtype=tmp.dtype)
-                            merged[key] = tmp
-                            norm_partial.append(f"{key}: {tuple(value.shape)} -> {tuple(tmp.shape)}")
-                    module.load_state_dict(merged, strict=True)
-                    print(f"[INFO]: Partially loaded observation normalization via runner.{attr}: {norm_partial}")
-                    break
-                except Exception as exc2:
-                    print(f"[WARN]: Could not load normalization via runner.{attr}: {exc}; partial failed: {exc2}")
+                raise RuntimeError(
+                    "Observation normalization shape mismatch during policy-only warm start; "
+                    "legacy partial normalization loading is disabled."
+                ) from exc
+        if not loaded_norm:
+            print("[WARN]: Checkpoint contains observation normalization, but the current runner exposes no normalizer module.")
 
-    if partial_loaded:
-        print(f"[INFO]: Partially expanded actor tensors: {partial_loaded}")
     print(
-        f"[INFO]: Policy-only warm start loaded {len(loaded)} actor-side tensors "
-        f"and {len(partial_loaded)} expanded actor tensors; "
-        f"left critic/optimizer fresh; skipped {len(skipped)} tensors."
+        f"[INFO]: policy-only warm start loaded {len(loaded)} exact actor-side tensors; "
+        f"left critic/optimizer fresh; skipped {len(skipped)} critic or unrelated tensors."
     )
 
 # ---------- helpers for eval-only flow ----------
@@ -643,6 +668,26 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     # ---------------- TRAINING PATH (UNCHANGED SAVE/PROGRESS) ----------------
     # override configurations with non-hydra CLI arguments
     agent_cfg = cli_args.update_rsl_rl_cfg(agent_cfg, args_cli)
+    # v11 is a fresh neural-policy start by default; same-experiment, same-source
+    # continuation is allowed and verified against saved source hashes.
+    if args_cli.task != CANONICAL_TASK:
+        raise RuntimeError(f"Only the v11 canonical task is registered: {CANONICAL_TASK}")
+    if args_cli.policy_only_warm_start or args_cli.reset_action_std:
+        raise RuntimeError("Canonical v11 must start fresh; cross-task actor warm start is for future registered skills only")
+    if args_cli.resume_log_root:
+        raise RuntimeError("v11 resume must use its own exact experiment root")
+    if (args_cli.load_run is not None or args_cli.checkpoint is not None) and not agent_cfg.resume:
+        raise RuntimeError("Checkpoint flags require --resume for a verified same-experiment continuation")
+    if agent_cfg.empirical_normalization:
+        raise RuntimeError("Frozen v11 requires empirical_normalization=False")
+    if agent_cfg.experiment_name != CANONICAL_EXPERIMENT:
+        raise RuntimeError("v11 canonical experiment identity mismatch")
+    if env_cfg.scene.robot.spawn.articulation_props.fix_root_link is not False:
+        raise RuntimeError("v11 requires a free-root robot")
+    for _group in ("legs", "ankles"):
+        _act = env_cfg.scene.robot.actuators[_group]
+        if (float(_act.stiffness), float(_act.damping)) != (18.0, 1.5):
+            raise RuntimeError(f"v11 PD drift for {_group}")
     env_cfg.scene.num_envs = args_cli.num_envs if args_cli.num_envs is not None else env_cfg.scene.num_envs
     agent_cfg.max_iterations = (
         args_cli.max_iterations if args_cli.max_iterations is not None else agent_cfg.max_iterations
@@ -651,6 +696,7 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     # set the environment seed / device
     env_cfg.seed = agent_cfg.seed
     env_cfg.sim.device = args_cli.device if args_cli.device is not None else env_cfg.sim.device
+
 
     # specify directory for logging experiments
     log_root_path = os.path.join("logs", "rsl_rl", agent_cfg.experiment_name)
@@ -680,22 +726,26 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     runner.add_git_repo_to_log(__file__)
     # save resume path before creating a new log_dir
     if agent_cfg.resume:
-        # get path to previous checkpoint. --resume_log_root allows v1.4.6 Hardware
-        # to warm-start from the v5s3 Stand experiment root while logging into a
-        # clean v1.4.6 experiment root.
+        # Resolve either a same-task resume or the an exact-shape v2.4 foundation warm start.
         resume_log_root_path = log_root_path
         if args_cli.resume_log_root:
             resume_log_root_path = os.path.abspath(os.path.expanduser(args_cli.resume_log_root))
         resume_path = get_checkpoint_path(resume_log_root_path, agent_cfg.load_run, agent_cfg.load_checkpoint)
         print(f"[INFO]: Loading model checkpoint from: {resume_path}")
+        _verify_resume_snapshot(resume_path, agent_cfg, env_cfg)
         if args_cli.policy_only_warm_start:
-            _load_policy_only_warm_start(runner, resume_path, agent_cfg.device)
+            _load_policy_only_warm_start(
+                runner, resume_path, agent_cfg.device, reset_action_std=args_cli.reset_action_std
+            )
+            if args_cli.reset_action_std:
+                print("[INFO]: Destination exploration: retained fresh action std.")
         else:
             # load previously trained model, including optimizer/critic state
             runner.load(resume_path)
 
     # dump the configuration into log-directory (unchanged)
     os.makedirs(os.path.join(log_dir, "params"), exist_ok=True)
+    _write_run_snapshot(log_dir, agent_cfg, env_cfg)
     dump_yaml(os.path.join(log_dir, "params", "env.yaml"), env_cfg)
     dump_yaml(os.path.join(log_dir, "params", "agent.yaml"), agent_cfg)
     dump_pickle(os.path.join(log_dir, "params", "env.pkl"), env_cfg)

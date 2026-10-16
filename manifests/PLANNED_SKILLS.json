@@ -1,0 +1,44 @@
+{
+  "canonical": {
+    "status": "implemented_not_host_validated",
+    "task": "Velocity-Lilgreen-Locomotion-ST3215-Loaded-v110"
+  },
+  "planned": [
+    {
+      "skill": "stable stand",
+      "status": "planned_no_gym_registration"
+    },
+    {
+      "skill": "directional walk",
+      "status": "planned_no_gym_registration"
+    },
+    {
+      "skill": "side stepping",
+      "status": "planned_no_gym_registration"
+    },
+    {
+      "skill": "crouch walk",
+      "status": "planned_no_gym_registration"
+    },
+    {
+      "skill": "turning",
+      "status": "planned_no_gym_registration"
+    },
+    {
+      "skill": "stairs",
+      "status": "planned_no_gym_registration"
+    },
+    {
+      "skill": "obstacle traversal",
+      "status": "planned_no_gym_registration"
+    },
+    {
+      "skill": "jumping",
+      "status": "planned_no_gym_registration"
+    },
+    {
+      "skill": "recovery",
+      "status": "planned_no_gym_registration"
+    }
+  ]
+}

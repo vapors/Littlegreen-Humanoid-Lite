@@ -15,3 +15,6 @@ from .diagnostics import *  # noqa: F401, F403
 from .st3215_actuator_model import *  # noqa: F401, F403
 from .st3215_actions import *  # noqa: F401, F403
 from .st3215_loaded_actuator_model import *  # noqa: F401, F403
+
+from .commands_v101 import *  # noqa: F401, F403
+from .bilateral_acquisition_v1031 import *  # noqa: F401, F403

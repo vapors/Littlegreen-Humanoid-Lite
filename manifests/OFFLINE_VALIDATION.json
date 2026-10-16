@@ -1,0 +1,83 @@
+{
+  "assessment": {
+    "not_claimed": [
+      "physics parity",
+      "physical servo match",
+      "walking success",
+      "deployable ONNX",
+      "host simulator installation"
+    ],
+    "preserved": [
+      "44 exact reward term call expressions and weights",
+      "v10.3 full task/env parameters with v10.3.1 reward overrides",
+      "v10.3.1 PPO parameter expressions except experiment label",
+      "47/50 observations and 12D ST3215 action code and constants",
+      "mass corrected USD + other USD assets until dependencies validated",
+      "full-foot state, source MDP, reset and termination code"
+    ],
+    "redesigned": [
+      "Flattened reward, task, PPO class config",
+      "single active gym task registry",
+      "single analyzer entry point",
+      "trainer: controlled v11 same-contract resume while fresh start enforced",
+      "exporter defaults and metadata for v11",
+      "planned-only future skills registry",
+      "one root README and machine-readable manifests"
+    ]
+  },
+  "behavior_baseline": "Velocity-Lilgreen-Locomotion-ST3215-Loaded-v1031",
+  "host_runtime_tests": {
+    "1_iteration_64_env": "NOT_RUN_REQUIRES_ISAACLAB",
+    "250_iteration_2048_env": "NOT_RUN_REQUIRES_ISAACLAB",
+    "checkpoint_resume_positive_negative": "NOT_RUN_REQUIRES_ISAACLAB",
+    "full_per_term_reward_contribution": "NOT_IMPLEMENTED_IN_ANALYZER",
+    "gym_make": "NOT_RUN_REQUIRES_ISAACLAB",
+    "isaaclab_installed_in_builder": false,
+    "onnx_export_and_ros2": "NOT_RUN_REQUIRES_ISAACLAB_AND_TRACK2_CONTRACT",
+    "policy_observations_actions_shape": "NOT_RUN_REQUIRES_ISAACLAB",
+    "seeded_reward_value_parity": "NOT_RUN_REQUIRES_ISAACLAB",
+    "usd_reference_inspection": "NOT_RUN_USD_TOOLS_UNAVAILABLE",
+    "usd_runtime_mass_per_link": "NOT_RUN_REQUIRES_ISAACLAB"
+  },
+  "new_task": "Velocity-Lilgreen-Locomotion-ST3215-Loaded-v110",
+  "open_gates": [
+    "Live Isaac Lab instantiation and preflight",
+    "Runtime parity and reward contribution instrumentation",
+    "ONNX export compatibility and Track 2 contract audit",
+    "Verify binary USD internal references via Omniverse"
+  ],
+  "python_package_versions": {
+    "littlegreen_humanoid_lite": "11.0.0",
+    "littlegreen_humanoid_lite_assets": "11.0.0",
+    "littlegreen_humanoid_lite_lowlevel": "11.0.0"
+  },
+  "release": "11.0.0",
+  "source_archive_sha256": "eed89f1afb6e411a5a2c220701eca5b42a5a2da1185b92180edade726304d65f",
+  "tests": {
+    "editable_install_without_dependencies": {
+      "distributions": 3,
+      "environment": "local isolated venv with setuptools build backend and --no-deps; installed from fresh ZIP extraction. Not target Isaac Lab Python 3.10.",
+      "python": "3.13.5",
+      "status": "PASS"
+    },
+    "fresh_extracted_checkout": "PASS",
+    "offline_contract_checker": "PASS",
+    "ppo_recipe_ast_parity_except_experiment_name": "PASS",
+    "python_source_compile": "PASS",
+    "relative_import_source_closure": {
+      "relative_imports_checked": 27,
+      "status": "PASS",
+      "unresolved": 0
+    },
+    "reward_function_params_weights_ast_parity": {
+      "active_reward_terms": 44,
+      "status": "PASS"
+    },
+    "single_gym_registration_source_assertion": "PASS",
+    "static_pytest": {
+      "status": "PASS",
+      "tests_passed": 7
+    },
+    "zip_integrity": "PASS"
+  }
+}

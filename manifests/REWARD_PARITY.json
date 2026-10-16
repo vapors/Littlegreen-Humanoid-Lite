@@ -1,0 +1,9 @@
+{
+  "all_weights_identical": true,
+  "details": "No IsaacLab runtime exercised. Synthetic/running tensor reward equality NOT tested.",
+  "identical_function_and_params_ast": true,
+  "numeric_ppoconfig_equal_except_experiment_name": true,
+  "reward_terms": 44,
+  "status": "PASS_STATIC_AST_PARITY",
+  "task_baseline": "v103 task + v1031 reward override"
+}

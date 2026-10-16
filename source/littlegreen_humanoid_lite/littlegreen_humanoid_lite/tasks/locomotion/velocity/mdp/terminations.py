@@ -184,3 +184,20 @@ def moving_no_support_timeout(
     env._littlegreen_v147_had_support = had_support
     env._littlegreen_v147_support_arming_timer_s = arming_timer
     return done
+
+
+def body_contact_termination(
+    env: ManagerBasedRLEnv,
+    sensor_cfg: SceneEntityCfg,
+    threshold: float = 1.0,
+) -> torch.Tensor:
+    """Terminate when any configured non-foot body makes meaningful contact.
+
+    v3.8 uses this only for the same base/hip/knee body set already penalized by
+    the historical Berkeley ``undesired_contacts`` term.  It defines an obvious
+    fall without prescribing a gait or minimum base height.
+    """
+    sensor = env.scene.sensors[sensor_cfg.name]
+    forces = sensor.data.net_forces_w_history[:, :, sensor_cfg.body_ids, :]
+    peak_force = forces.norm(dim=-1).amax(dim=1)
+    return torch.any(peak_force > float(threshold), dim=1)
