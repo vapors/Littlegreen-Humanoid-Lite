@@ -80,7 +80,45 @@ python scripts/rsl_rl/play_joystick.py \
 python scripts/rsl_rl/export_policy_littlegreen.py \
   --task Velocity-Lilgreen-Locomotion-ST3215-Loaded-v111 \
   --num_envs 1 --load_run RUN_DIRECTORY_NAME --checkpoint model_249.pt --headless
+
+
+
+#continue from 4999
+cd ~/Littlegreen-Humanoid-Lite
+
+python scripts/rsl_rl/train_eval.py \
+  --task Velocity-Lilgreen-Locomotion-ST3215-Loaded-v111 \
+  --num_envs 2048 \
+  --max_iterations 5002 \
+  --seed 113 \
+  --resume \
+  --load_run 2026-10-17_16-03-45_v111_r3_bilateral_seed113 \
+  --checkpoint model_4999.pt \
+  --run_name v111_r3_continue_5k_to10k \
+  --headless
+
+
+
+
+python scripts/rsl_rl/analyze_policy.py \
+  --task Velocity-Lilgreen-Locomotion-ST3215-Loaded-v111 \
+  --num_envs 128 --steps 1200 \
+  --load_run 2026-10-17_20-28-56_v111_r3_continue_5k_to10k \
+  --eval_force_command 0.20 0.0 0.0 --headless \
+  --checkpoint model_6000.pt 
+
+python scripts/rsl_rl/play_joystick.py \
+  --task Velocity-Lilgreen-Locomotion-ST3215-Loaded-v111 \
+  --num_envs 64 --load_run 2026-10-17_20-28-56_v111_r3_continue_5k_to10k --checkpoint model_8000.pt
+
+
 ```
+
+
+
+
+
+
 
 
 python scripts/rsl_rl/analyze_policy.py \
