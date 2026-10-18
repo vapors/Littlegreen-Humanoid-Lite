@@ -15,41 +15,62 @@
       "before": 0.35
     }
   },
+  "changed_since_v11_1_R2": {
+    "analyzer": "Per-side preparation, bounded recovery onset, exemption-attempt counts",
+    "balanced_swing_discovery": "Recovery exemption now finite onset-triggered, repeated-side event history always counted",
+    "receiving_foot_preparation": {
+      "after": 0.75,
+      "before": null,
+      "description": "Monotone coupled load/COM record after true full-foot flight and replant; expires after 0.75s"
+    },
+    "track_lin_vel_xy_acquisition": {
+      "after": 0.85,
+      "before": 0.8
+    }
+  },
   "changes": {
     "balanced_swing_discovery": {
-      "description": "No partial-contact swing credit; full main-and-toe release required",
-      "function": null,
+      "description": "Strict full main+toe flight; finite triggered recovery exemption; all qualified attempts count toward repeat history",
+      "function": "mdp.bilateral_swing_discovery_v111",
       "v11_0_weight": 0.85,
-      "v11_1_R2_weight": 1.2
+      "v11_1_R2_weight": 1.2,
+      "v11_1_R3_weight": 1.2
     },
     "coherent_swing_rise_velocity": {
       "description": "Restore viable motion acquisition after 250-iteration review",
-      "function": null,
+      "function": "mdp.coherent_swing_rise_velocity_v67",
       "v11_0_weight": 1.0,
       "v11_1_R2_weight": 0.9
     },
     "receiving_foot_load_acceptance": {
       "description": "Earned only after whole-foot airborne forward swing and complete-foot replant",
-      "function": null,
+      "function": "mdp.receiving_foot_load_acceptance_v111",
       "v11_0_weight": null,
       "v11_1_R2_weight": 0.85
     },
+    "receiving_foot_preparation": {
+      "description": "New bounded coupled load/COM preparation following genuine full-foot flight and complete replant",
+      "function": "mdp.receiving_foot_preparation_v111",
+      "v11_0_weight": null,
+      "v11_1_R3_weight": 0.75
+    },
     "track_lin_vel_xy_acquisition": {
-      "description": "Restore viable motion acquisition after 250-iteration review",
-      "function": null,
+      "description": "Small exploratory velocity tracking increase from R2 0.80 to R3 0.85; mechanics gated and unchanged",
+      "function": "mdp.gait_conditioned_track_lin_vel_xy_v67",
       "v11_0_weight": 0.8,
-      "v11_1_R2_weight": 0.8
+      "v11_1_R2_weight": 0.8,
+      "v11_1_R3_weight": 0.85
     },
     "whole_foot_air_time_exploration": {
       "description": "Restore viable motion acquisition after 250-iteration review",
-      "function": null,
+      "function": "mdp.whole_foot_air_time_viability_gated_v63",
       "v11_0_weight": 0.5,
       "v11_1_R2_weight": 0.45
     }
   },
-  "constraints": "No geometry, contact detection helper, phase, mass, actuator, joint order, safety, PPO learning hyperparameters, or full-step reward changes",
+  "constraints": "Frozen robot geometry, USD, ST3215, contact sensor, 47/50 observations, 12-D action v4, phase, PPO and existing confirmed-step/WORLD-rate mechanics",
   "note": "Static source changes only; no Isaac Lab/GPU learning claims",
-  "recipe_revision": "R2",
+  "recipe_revision": "R3",
   "reference": "v11.0.0 HF1",
-  "supersedes": "v11.1.0 HF1 (same semantic version, incompatible reward recipe)"
+  "supersedes": "v11.1.0 R2/TestHF1, same version but INCOMPATIBLE reward recipe"
 }

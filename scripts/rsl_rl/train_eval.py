@@ -122,7 +122,7 @@ import json
 from pathlib import Path
 
 CANONICAL_TASK = "Velocity-Lilgreen-Locomotion-ST3215-Loaded-v111"
-CANONICAL_EXPERIMENT = "littlegreen_v11_1_0_bilateral_acquisition_r2_fresh"
+CANONICAL_EXPERIMENT = "littlegreen_v11_1_0_bilateral_acquisition_r3_fresh"
 
 def _source_contract_fingerprints():
     """Hash runtime-critical code and static contract; excludes mutable logs."""

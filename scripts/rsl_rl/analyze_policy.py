@@ -167,8 +167,16 @@ def main():
         v111_receiver_load=torch.zeros(2,device=dev,dtype=torch.float64)
         v111_receiver_com=torch.zeros(2,device=dev,dtype=torch.float64)
         v111_receiver_completed=torch.zeros(2,device=dev,dtype=torch.float64)
+        v111_prep_side=torch.zeros(2,device=dev,dtype=torch.float64)
+        v111_prep_events=torch.zeros(2,device=dev,dtype=torch.float64)
+        v111_prep_valid=torch.zeros(2,device=dev,dtype=torch.float64)
+        v111_prep_peak=torch.zeros(2,device=dev,dtype=torch.float64)
+        v111_prep_score=torch.zeros(2,device=dev,dtype=torch.float64)
+        v111_recovery_onsets=z(); v111_recovery_window_s=z()
+        v111_recovery_event_counts=torch.zeros(2,device=dev,dtype=torch.float64)
+        v111_recovery_armed=z()
         v111_max_streak=torch.zeros((),device=dev,dtype=torch.float64)
-        # v11.1 R2 exact reward-manager contact gates (current_contact_time based).
+        # v11.1 R3 exact reward-manager contact gates (current_contact_time based).
         v111_whole_air_samples=torch.zeros(2,device=dev,dtype=torch.float64)
         v111_partial_contact_samples=torch.zeros(2,device=dev,dtype=torch.float64)
         v111_pivot_suppressed_samples=torch.zeros(2,device=dev,dtype=torch.float64)
@@ -200,6 +208,15 @@ def main():
                 v111_credit+=d111['side_credit'].double().sum(dim=0)
                 v111_recovery+=d111['recovery_exempt'].double().sum()
                 v111_strafe+=d111['strafe_exempt'].double().sum()
+                v111_recovery_onsets+=d111['recovery_onset'].double().sum()
+                v111_recovery_window_s+=d111['recovery_window_s'].double().sum()
+                v111_recovery_armed+=d111['recovery_armed'].double().sum()
+                v111_recovery_event_counts+=d111['recovery_exempt_events'].double().sum(dim=0)
+                v111_prep_side+=d111['prep_progress'].double().sum(dim=0)
+                v111_prep_events+=d111['prep_fresh'].double().sum(dim=0)
+                v111_prep_valid+=d111['prep_valid'].double().sum(dim=0)
+                v111_prep_peak=torch.maximum(v111_prep_peak,d111['prep_high'].double().amax(dim=0))
+                v111_prep_score+=d111['prep_score'].double().sum(dim=0)
                 v111_receiver+=d111['receiver'].double().sum()
                 v111_receiver_side+=d111['receiver_progress'].double().sum(dim=0)
                 v111_receiver_load+=d111['receiver_load_delta'].double().sum(dim=0)
@@ -699,8 +716,8 @@ def main():
                  "configured_turn_focus_ranges":None,
             },
             "economics_v111":{
-                "definition":"v11.1 experimental attenuated repeated-side exploration plus post-airborne receiving-foot load/COM acceptance; v10.3.1 original gait-completion/WORLD-rate intact",
-                "weights":{"track_lin_vel_xy_acquisition":0.80,"support_readiness_progress":0.35,"stance_relative_com_drive":0.18,"finite_swing_initiation":1.90,"support_takeover_progress":1.85,"swing_foot_command_velocity":1.85,"balanced_swing_discovery":1.20,"receiving_foot_load_acceptance":0.85,"coherent_swing_rise_velocity":0.90,"whole_foot_air_time_exploration":0.45,"opposite_support_release":1.80,"completed_gait_step":1.85,"bilateral_passage":1.10,"commanded_world_rate":2.00,"yaw_acquisition":0.55},
+                "definition":"R3 finite disturbance exemption and per-command-epoch receiving-foot preparation following real full-foot flight; original step/WORLD-rate rewards unchanged",
+                "weights":{"track_lin_vel_xy_acquisition":0.85,"support_readiness_progress":0.35,"stance_relative_com_drive":0.18,"finite_swing_initiation":1.90,"support_takeover_progress":1.85,"swing_foot_command_velocity":1.85,"balanced_swing_discovery":1.20,"receiving_foot_load_acceptance":0.85,"receiving_foot_preparation":0.75,"coherent_swing_rise_velocity":0.90,"whole_foot_air_time_exploration":0.45,"opposite_support_release":1.80,"completed_gait_step":1.85,"bilateral_passage":1.10,"commanded_world_rate":2.00,"yaw_acquisition":0.55},
                 "world_rate_bilateral_mix":0.50,
                  "configured_general_ranges":{"lin_vel_x_m_s":[0.12,0.30],"lin_vel_y_m_s":[0.0,0.0],"ang_vel_z_rad_s":[0.0,0.0]},
             },
@@ -749,6 +766,20 @@ def main():
             "mean_unweighted_term": _f(v111_reward_sum)/N,
             "mean_weighted_term_before_dt": 1.20*_f(v111_reward_sum)/N,
             "mean_receiving_foot_load_acceptance_weighted_before_dt":0.85*_f(v111_receiver)/N,
+            "mean_receiving_foot_preparation_weighted_before_dt":0.75*_f(v111_prep_side.sum())/N,
+            "receiving_preparation_credited_progress_left":_f(v111_prep_side[0]),
+            "receiving_preparation_credited_progress_right":_f(v111_prep_side[1]),
+            "receiving_preparation_arm_events_left":int(round(_f(v111_prep_events[0]))),
+            "receiving_preparation_arm_events_right":int(round(_f(v111_prep_events[1]))),
+            "receiving_preparation_valid_fraction_left":_f(v111_prep_valid[0])/N,
+            "receiving_preparation_valid_fraction_right":_f(v111_prep_valid[1])/N,
+            "receiving_preparation_max_epoch_score_left":_f(v111_prep_peak[0]),
+            "receiving_preparation_max_epoch_score_right":_f(v111_prep_peak[1]),
+            "recovery_disturbance_onsets":int(round(_f(v111_recovery_onsets))),
+            "recovery_exempt_qualified_attempts_left":int(round(_f(v111_recovery_event_counts[0]))),
+            "recovery_exempt_qualified_attempts_right":int(round(_f(v111_recovery_event_counts[1]))),
+            "mean_recovery_window_remaining_s":_f(v111_recovery_window_s)/N,
+            "recovery_rearmed_fraction":_f(v111_recovery_armed)/N,
             "distinct_qualified_attempts_left":int(round(_f(v111_attempts[0]))),
             "distinct_qualified_attempts_right":int(round(_f(v111_attempts[1]))),
             "mean_credit_multiplier_left":_f(v111_credit[0])/N,
@@ -776,8 +807,8 @@ def main():
             "pivot_credit_suppressed_samples_right":int(round(_f(v111_pivot_suppressed_samples[1]))),
             "non_airborne_swing_quality_leak_samples_left":int(round(_f(v111_ground_reward_leak_samples[0]))),
             "non_airborne_swing_quality_leak_samples_right":int(round(_f(v111_ground_reward_leak_samples[1]))),
-            "gate_definition":"new bilateral discovery requires main AND toe airborne; receiving load pays only AFTER true airborne then full-foot replant",
-            "definition": "v11.1 distinct qualified bouts; diminishing same-side credit with recovery/strafe exemptions; receiving-foot reward measured separately",
+            "gate_definition":"R3: swing discovery requires main AND toe airborne; load-preparation additionally requires prior full-foot flight, full replant, load and COM progress above previous epoch peaks",
+            "definition": "v11.1 R3: qualified full-airborne bouts, short recovery events, late receiving load and earlier bounded replant preparation",
         }
         # Static configurations alone are insufficient evidence of runtime plant.
         # Audit PhysX articulation mass and effective active actuator gains.

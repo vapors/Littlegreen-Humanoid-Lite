@@ -1,34 +1,46 @@
 {
-  "change_scope": "strict main+toe whole-airborne gating for new bilateral discovery, restored gait-conditioned velocity/rise/air-time weights, diagnostic expansion",
-  "gated_new_term_details": {
-    "bilateral_swing_discovery": "strict ~k[any_contact] (any_contact = main | toe); blocks all new quality/paired credit/repeat-history/counts during any main/toe contact",
-    "existing_coherent_swing_rise_velocity": "pre-existing physically viable rise precursor intentionally remains available at partial contact; separately gated new terms require full release",
-    "receiving_foot_load_acceptance": "pending armed by true both-airborne forward swing, pays only on later full-foot replant and monotonic load/COM gain"
+  "changes": {
+    "prep_gate": "true main+toe flight then full plant; anchored stance, viability, monotone joint progress",
+    "receiver_preparation_weight": 0.75,
+    "recovery_exemption_window_s": 0.3,
+    "recovery_onset": "prior quiet+new disturbance, no static-lean exemption",
+    "repeat_events": "all qualifying sides count, including exempt recovery events",
+    "weight_track_lin_vel_xy_acquisition": 0.85
   },
-  "limitations": [
-    "Different reward recipe under same version means HF1 checkpoints are INCOMPATIBLE; use fresh R2 run",
-    "Offline tensor unit tests cannot validate PhysX gait progression or simulator reward income",
-    "No unsupervised hardware actuation authorized"
+  "disallowed": [
+    "No R2 checkpoint resume",
+    "No unsupervised hardware walking"
   ],
   "needs_host": [
-    "Isaac Lab RewardManager initialization with live sensor",
-    "64-env one-iteration smoke",
-    "2048-env 250-iteration fresh training and analyzer",
-    "model_249.pt forced 0.20 and 0.30 play comparison",
-    "export/ONNX and zero-command metadata on host",
-    "real hardware/Track 2 validation"
+    "Gym instantiate reward manager, 64env 1-iter smoke",
+    "250-iter 2048-env fresh seed113 qualification",
+    "analyze forced +0.20 and +0.30 m/s",
+    "evaluate reward contribution and left/right COM/load",
+    "export+ONNX and zero-command metadata qualification"
   ],
-  "passed_offline": {
-    "check_contract": "PASS",
-    "config_manifest_ast": "PASS all 45 active reward terms equal current config AST",
-    "ppo_hyperparameter_parity": "PASS; only experiment folder identity changed",
-    "protected_source_parity": "PASS 8 protected source files byte-identical to v11.1.0 HF1",
-    "python_compile": "PASS source of core/analyzer",
-    "unit_tests": ".....................                                                    [100%]\n21 passed in 2.31s"
+  "release": "LittleGreen Track 1 v11.1.0 R3",
+  "result": "PASS_OFFLINE; ISAAC_LAB_HOST_PENDING",
+  "source": "Littlegreen-Humanoid-Lite_v11_1_0_BilateralGait_R2_TestHF1.zip",
+  "source_contract": {
+    "action": 12,
+    "actor_obs": 47,
+    "critic_obs": 50,
+    "physical_plant_unchanged": true,
+    "physics_dt_s": 0.005,
+    "policy_dt_s": 0.02,
+    "ppo_unchanged": true,
+    "reward_term_count": 46
   },
-  "recipe_revision": "R2",
-  "release": "11.1.0",
-  "replaces": "v11.1.0 HF1",
-  "source_archive_sha256": "23ef9012bf7c647112a7d21129629aeec6ac26e8f78bc1bf17d64f531e6bf782",
-  "status": "PASS_OFFLINE_HOST_SMOKE_REQUIRED"
+  "tests": {
+    "clean_extract_test": "PENDING",
+    "contract_check": "PASS_STATIC",
+    "python_pytest": {
+      "failed": 0,
+      "passed": 25,
+      "type": "static/synthetic tensor, no PhysX"
+    },
+    "reference_source_diff": "PASS 14/14 relevant protected source/assets byte-identical to R2",
+    "zip_integrity": "PENDING"
+  },
+  "validation_date": "2026-10-17"
 }

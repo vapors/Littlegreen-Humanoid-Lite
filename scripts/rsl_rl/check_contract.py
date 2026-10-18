@@ -17,7 +17,7 @@ checks['version']=(root/'VERSION').read_text().strip()=='11.1.0'
 for rel in ['pyproject.toml','source/littlegreen_humanoid_lite/pyproject.toml','source/littlegreen_humanoid_lite_assets/pyproject.toml','source/littlegreen_humanoid_lite_lowlevel/pyproject.toml']:
  checks[rel+' version']=tomllib.loads((root/rel).read_text())['project']['version']=='11.1.0'
 checks['task'] = manifest['task']=='Velocity-Lilgreen-Locomotion-ST3215-Loaded-v111'
-checks['reward_diff_documented']=len(json.loads((root/'manifests/REWARD_V111_DIFF.json').read_text())['changes'])==5
+checks['reward_diff_documented']=len(json.loads((root/'manifests/REWARD_V111_DIFF.json').read_text())['changes'])==6
 checks['reward_module_compiles'] = compile((root/'source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/config/littlegreen_humanoid/rewards/locomotion.py').read_text(),'locomotion.py','exec') is not None
 checks['corrected_usd']=(root/'source/littlegreen_humanoid_lite_assets/data/usd/lilgreen_mass_v2926.usd').is_file()
 print(json.dumps({'status':'PASS_STATIC' if all(checks.values()) else 'FAIL_STATIC','checks':checks},indent=2))

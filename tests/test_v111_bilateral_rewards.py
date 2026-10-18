@@ -15,7 +15,8 @@ MODULE=ROOT/'source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/lo
 
 def _code():
     tree=ast.parse(MODULE.read_text())
-    names={'repeat_multiplier','monotone_acceptance_increment','_evaluate_v111',
+    names={'repeat_multiplier','monotone_acceptance_increment','recovery_window_update',
+           'load_preparation_score','_evaluate_v111','receiving_foot_preparation_v111',
            'bilateral_swing_discovery_v111','receiving_foot_load_acceptance_v111'}
     tree.body=[n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name in names]
     globals_={'torch':torch,'math':math,'__name__':'test_v111_runtime',
@@ -94,15 +95,18 @@ def test_repeat_credit_and_opposite_leg_bonus():
     assert env._lgh111_event_counts.tolist()==[[3,1]]
 
 
-def test_recovery_and_strafe_suppress_attenuation_without_new_income():
+def test_finite_recovery_and_strafe_suppress_attenuation_without_new_income():
     env=Env(); env.step(_state('left'))
     for _ in range(16):env.step(_state(planted=True))
     env.step(_state('left'))
     for _ in range(16):env.step(_state(planted=True))
     recovered=env.step(_state('left',recovery=True))
     assert recovered['recovery_exempt'].item()
+    assert recovered['recovery_onset'].item()
     assert recovered['side_credit'][0,0].item()==1.0
-    assert recovered['repeat_streak'].item()==2  # exempt recovery doesn't extend penalty history
+    assert recovered['repeat_streak'].item()==3  # recovery event still counts in history
+    for _ in range(20): late=env.step(_state(planted=True,recovery=True))
+    assert not late['recovery_exempt'].item(), 'sustained lean must lose its exemption'
     for _ in range(16):env.step(_state(planted=True,strafe=True))
     lateral=env.step(_state('left',strafe=True))
     assert lateral['strafe_exempt'].item()
@@ -162,7 +166,8 @@ def test_isaac_lab_reward_manager_signature_contract():
     rewards_cls = next(n for n in tree.body if isinstance(n, ast.ClassDef) and
                        n.name == 'LocomotionRewardsCfg')
     for term_name, func_name in [('balanced_swing_discovery', 'bilateral_swing_discovery_v111'),
-                                 ('receiving_foot_load_acceptance', 'receiving_foot_load_acceptance_v111')]:
+                                 ('receiving_foot_load_acceptance', 'receiving_foot_load_acceptance_v111'),
+                                 ('receiving_foot_preparation', 'receiving_foot_preparation_v111')]:
         term = next(n.value for n in rewards_cls.body if isinstance(n, ast.Assign) and
                     len(n.targets)==1 and isinstance(n.targets[0],ast.Name) and
                     n.targets[0].id==term_name)
@@ -187,7 +192,8 @@ def test_explicit_reward_wrappers_share_per_step_cache():
     swing=f['bilateral_swing_discovery_v111'](env,**configured)
     counts=env._lgh111_event_counts.clone()
     receiver=f['receiving_foot_load_acceptance_v111'](env,**configured)
-    assert swing.shape==receiver.shape==(1,)
+    prep=f['receiving_foot_preparation_v111'](env,**configured)
+    assert swing.shape==receiver.shape==prep.shape==(1,)
     assert torch.equal(env._lgh111_event_counts,counts)
 
 
@@ -237,8 +243,9 @@ def test_full_air_swing_still_pays_and_repeat_penalty_stays():
 def test_reward_weights_restored_without_changing_gait_gates():
     reward_cfg=ROOT / 'source/littlegreen_humanoid_lite/littlegreen_humanoid_lite/tasks/locomotion/velocity/config/littlegreen_humanoid/rewards/locomotion.py'
     node=next(n for n in ast.parse(reward_cfg.read_text()).body if isinstance(n,ast.ClassDef) and n.name=='LocomotionRewardsCfg')
-    expected={'track_lin_vel_xy_acquisition':.80,'coherent_swing_rise_velocity':.90,
-              'whole_foot_air_time_exploration':.45,'balanced_swing_discovery':1.2,'receiving_foot_load_acceptance':.85}
+    expected={'track_lin_vel_xy_acquisition':.85,'coherent_swing_rise_velocity':.90,
+              'whole_foot_air_time_exploration':.45,'balanced_swing_discovery':1.2,'receiving_foot_load_acceptance':.85,
+              'receiving_foot_preparation':.75}
     for n in node.body:
         if not isinstance(n,ast.Assign) or not isinstance(n.targets[0],ast.Name):continue
         key=n.targets[0].id
@@ -247,3 +254,54 @@ def test_reward_weights_restored_without_changing_gait_gates():
             assert abs(ast.literal_eval(wt)-expected[key])<1e-8
             del expected[key]
     assert not expected
+
+
+def test_static_lean_never_grants_recovery_exemption():
+    env=Env()
+    for _ in range(30): result=env.step(_state('left',recovery=True))
+    assert not result['recovery_exempt'].item()
+    assert result['side_credit'][0,0].item() <= 1.0
+    assert not result['recovery_armed'].item()
+
+
+def test_recovery_requires_quiet_rearm_after_window():
+    env=Env()
+    for _ in range(6): env.step(_state(planted=True))
+    first=env.step(_state('left',recovery=True))
+    assert first['recovery_onset'].item()
+    for _ in range(20): timed=env.step(_state(planted=True,recovery=True))
+    assert not timed['recovery_exempt'].item()
+    assert not timed['recovery_onset'].item()
+    for _ in range(5): env.step(_state(planted=True))
+    again=env.step(_state('left',recovery=True))
+    assert again['recovery_onset'].item()
+
+
+def test_preparation_requires_full_foot_airborne_and_real_replant():
+    for mode in ('main_only','toe_only'):
+        env=Env();env.step(_state('left',contact_mode=mode))
+        p=env.step(_state(receiving_load=.22,receiving_closeness=.38))
+        assert not p['prep_fresh'].any().item()
+        q=env.step(_state(receiving_load=.40,receiving_closeness=.50))
+        assert q['prep'].item()==0
+    env=Env();env.step(_state('left'))
+    first=env.step(_state(receiving_load=.22,receiving_closeness=.38))
+    assert first['prep_fresh'][0,0].item()
+    assert first['prep'].item()==0
+    second=env.step(_state(receiving_load=.34,receiving_closeness=.49))
+    assert second['prep'].item()>0
+    assert second['prep_progress'][0,0].item()>0
+    same=env.step(_state(receiving_load=.34,receiving_closeness=.49))
+    assert same['prep'].item()==0
+    # Repeated rocking back and forth below the previous peak cannot pay.
+    env.step(_state(receiving_load=.23,receiving_closeness=.39))
+    again=env.step(_state(receiving_load=.34,receiving_closeness=.49))
+    assert again['prep'].item()==0
+
+
+def test_preparation_expires_and_does_not_pay_while_falling_or_sliding():
+    env=Env();env.step(_state('left'))
+    env.step(_state(receiving_load=.20,receiving_closeness=.38))
+    for _ in range(43): env.step(_state(receiving_load=.20,receiving_closeness=.38))
+    after=env.step(_state(receiving_load=.42,receiving_closeness=.56))
+    assert after['prep'].item()==0

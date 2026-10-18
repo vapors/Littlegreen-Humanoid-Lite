@@ -5,25 +5,25 @@ metadata:
   training_package: littlegreen_humanoid_lite
   asset_package: littlegreen_humanoid_lite_assets
   source_lineage: Berkeley-Humanoid-Lite v1.4.8 renamed and evolved
-  exported_at_utc: '2026-10-16T21:26:22Z'
+  exported_at_utc: '2026-10-17T22:13:48Z'
   task: Velocity-Lilgreen-Locomotion-ST3215-Loaded-v111
   task_role: locomotion
   training_release: 11.1.0
-  experiment_name: littlegreen_v11_1_0_bilateral_acquisition_fresh
-  load_run: 2026-10-16_14-08-38_v111_bilateral_seed113
-  checkpoint: model_250.pt
-  checkpoint_path: /home/scott/Littlegreen-Humanoid-Lite/logs/rsl_rl/littlegreen_v11_1_0_bilateral_acquisition_fresh/2026-10-16_14-08-38_v111_bilateral_seed113/model_250.pt
-  export_dir: /home/scott/Littlegreen-Humanoid-Lite/logs/rsl_rl/littlegreen_v11_1_0_bilateral_acquisition_fresh/2026-10-16_14-08-38_v111_bilateral_seed113/exported
+  experiment_name: littlegreen_v11_1_0_bilateral_acquisition_r2_fresh
+  load_run: 2026-10-16_15-09-32_v111_r2_bilateral_seed113
+  checkpoint: model_500.pt
+  checkpoint_path: /home/scott/Littlegreen-Humanoid-Lite/logs/rsl_rl/littlegreen_v11_1_0_bilateral_acquisition_r2_fresh/2026-10-16_15-09-32_v111_r2_bilateral_seed113/model_500.pt
+  export_dir: /home/scott/Littlegreen-Humanoid-Lite/logs/rsl_rl/littlegreen_v11_1_0_bilateral_acquisition_r2_fresh/2026-10-16_15-09-32_v111_r2_bilateral_seed113/exported
   policy_filename: policy.onnx
   policy_format: onnx
-  policy_sha256: 843e37c74ad75346721b70ebca962780d2eda482fb04220292a78e2ef6c26577
+  policy_sha256: 7863ab8970feaa0490ecffc0edc978d876581aacca1002e9d7cf775dd37b0859
   publication_kind: project_latest
-  published_at_utc: '2026-10-16T21:26:22Z'
+  published_at_utc: '2026-10-17T22:13:48Z'
   published_policy_path: /home/scott/Littlegreen-Humanoid-Lite/configs/policy.onnx
 policy_checkpoint_path: /home/scott/Littlegreen-Humanoid-Lite/configs/policy.onnx
 policy_checkpoint_relative_path: policy.onnx
 policy_checkpoint_filename: policy.onnx
-policy_sha256: 843e37c74ad75346721b70ebca962780d2eda482fb04220292a78e2ef6c26577
+policy_sha256: 7863ab8970feaa0490ecffc0edc978d876581aacca1002e9d7cf775dd37b0859
 onnx_input_name: obs
 onnx_input_shape:
 - 1

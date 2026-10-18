@@ -1,0 +1,36 @@
+{
+  "baseline": "11.1.0 R2/TestHF1",
+  "change_set": {
+    "analyzer": "R3 recovery event and per-foot prep accumulation, contact and 2-sided gait metrics retained",
+    "preparation": "New +0.75 bounded incremental coupled receiving-load/COM score following true main+toe airborne and full replant; no directional progress precondition; anchored opposite full-plant support and viability; 0.75 sec window and per-command-epoch monotone best score",
+    "recovery_exemption": "Initial quiet rearm >= 5 frames, onset dynamic tilt >=12deg and roll/pitch rate >=0.50 rad/s, at most 0.30 sec, no refresh until stable; all genuine bouts counted for repeat history",
+    "unchanged_completion": "strict receiving_foot_load_acceptance, support-baton handoff, confirmed steps and WORLD rate",
+    "velocity_tracking_weight": {
+      "from": 0.8,
+      "to": 0.85
+    }
+  },
+  "experiment": "littlegreen_v11_1_0_bilateral_acquisition_r3_fresh",
+  "preserved": [
+    "mass-corrected USD",
+    "actuator ST3215 model",
+    "47D observation",
+    "50D critic",
+    "12D action v4",
+    "q_default",
+    "phase",
+    "termination",
+    "PPO algorithm and noise",
+    "command distribution",
+    "zero-command export semantics",
+    "Track2 untouched"
+  ],
+  "release": "11.1.0 R3",
+  "task": "Velocity-Lilgreen-Locomotion-ST3215-Loaded-v111",
+  "training_instruction": "Fresh randomly initialized policy. Do not resume R2 checkpoint in R3; only same-R3 resume with source provenance check.",
+  "validation_limits": [
+    "No Isaac Lab physics runtime in build container",
+    "No gait learning claims",
+    "ONNX export on workstation untested for R3"
+  ]
+}

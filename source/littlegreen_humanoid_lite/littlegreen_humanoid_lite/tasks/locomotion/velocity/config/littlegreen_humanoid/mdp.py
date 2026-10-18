@@ -139,4 +139,5 @@ from littlegreen_humanoid_lite.tasks.locomotion.velocity.mdp.bilateral_acquisiti
 from littlegreen_humanoid_lite.tasks.locomotion.velocity.mdp.bilateral_acquisition_v111 import (
     bilateral_swing_discovery_v111,
     receiving_foot_load_acceptance_v111,
+    receiving_foot_preparation_v111,
 )

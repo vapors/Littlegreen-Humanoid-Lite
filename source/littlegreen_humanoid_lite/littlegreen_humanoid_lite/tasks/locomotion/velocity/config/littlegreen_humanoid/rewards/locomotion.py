@@ -123,7 +123,7 @@ class LocomotionRewardsCfg:
                 "clearance_credit": 0.48, "single_support_credit": 0.20,
                 "load_asymmetry_credit": 0.10, **_VIABILITY,
             },
-            weight=0.80,  # restore v11.0 velocity incentive; gait/viability gate remains
+            weight=0.85,  # R3 slight tracking increase, paired with transfer bridge
         )
     track_ang_vel_z_acquisition = RewTerm(
         func=mdp.track_ang_vel_z_acquisition_v63,
@@ -417,7 +417,7 @@ class LocomotionRewardsCfg:
         weight=-0.08,
     )
 
-    # v11.1 R2: only main+toe fully airborne quality-triggered swing bouts; repeated same-side bouts have diminishing
+    # v11.1 R3: only main+toe fully airborne quality-triggered swing bouts; repeated same-side bouts have diminishing
     # value except for recovery and lateral/strafe commands. No prescribed gait phase.
     balanced_swing_discovery = RewTerm(
         func=mdp.bilateral_swing_discovery_v111,
@@ -432,6 +432,7 @@ class LocomotionRewardsCfg:
             "individual_bootstrap": 0.55, "opposite_attempt_bonus": 0.45,
             "repeat_decay": 0.68, "repeat_floor": 0.20,
             "recency_decay": 0.985,
+            "recovery_window_s": 0.30, "prep_window_s": 0.75,
             **_VIABILITY,
         },
         weight=1.20,
@@ -452,7 +453,30 @@ class LocomotionRewardsCfg:
             "individual_bootstrap": 0.55, "opposite_attempt_bonus": 0.45,
             "repeat_decay": 0.68, "repeat_floor": 0.20,
             "recency_decay": 0.985,
+            "recovery_window_s": 0.30, "prep_window_s": 0.75,
             **_VIABILITY,
         },
         weight=0.85,
+    )
+
+    # R3: bounded load + COM preparation, from full-foot airborne to replant;
+    # can reward early supported transition without requiring full takeover.
+    # Monotone per-command-epoch credit prevents repetitive rocking income.
+    receiving_foot_preparation = RewTerm(
+        func=mdp.receiving_foot_preparation_v111,
+        params={
+            "command_name": "base_velocity", "sensor_cfg": _whole("contact_forces"),
+            "asset_cfg": _whole("robot"),
+            "command_threshold": 0.08, "clearance_full_m": 0.022,
+            "rise_full_mps": 0.100, "forward_full_mps": 0.22,
+            "max_stance_speed_mps": 0.12,
+            "attempt_threshold": 0.065, "rearm_threshold": 0.025,
+            "rearm_steps": 4, "attempt_cooldown_s": 0.25,
+            "individual_bootstrap": 0.55, "opposite_attempt_bonus": 0.45,
+            "repeat_decay": 0.68, "repeat_floor": 0.20,
+            "recency_decay": 0.985,
+            "recovery_window_s": 0.30, "prep_window_s": 0.75,
+            **_VIABILITY,
+        },
+        weight=0.75,
     )

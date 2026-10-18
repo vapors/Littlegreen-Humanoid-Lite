@@ -1,7 +1,7 @@
-"""v11.1 event-aware bilateral swing discovery and receiving-foot load acceptance.
+"""v11.1 R3: event-aware swing discovery, bounded recovery and receiving-foot preparation.
 
 Neither term changes the actuator/observation/phase contract or schedules a side.
-The helper is evaluated once per policy step even though two reward terms call it.
+The helper is evaluated once per policy step even though three reward terms call it.
 The state is reset on episode restart and on velocity-command epoch change.
 """
 from __future__ import annotations
@@ -25,6 +25,35 @@ def monotone_acceptance_increment(load: torch.Tensor, closeness: torch.Tensor,
     return 0.70 * l + 0.30 * c
 
 
+def recovery_window_update(tilt, rate, previous_tilt, previous_rate, armed,
+                           stable_steps, remaining_s, dt, window_s=0.30):
+    """Re-arm only after genuinely quiet upright samples; static lean is not recovery.
+
+    A new disturbance must depart from that quiet state with BOTH significant tilt
+    and fast roll/pitch motion. The exemption expires and cannot restart until the
+    robot has settled, irrespective of long-lived lean or oscillation.
+    """
+    stable = (tilt < math.radians(10.0)) & (rate < 0.25)
+    stable_steps = torch.where(stable, stable_steps+1, torch.zeros_like(stable_steps))
+    armed = armed | (stable_steps >= 5)
+    onset = (armed & (tilt >= math.radians(12.0)) & (rate >= 0.50) &
+             ((tilt - previous_tilt >= math.radians(2.0)) |
+              (rate - previous_rate >= 0.25)))
+    remaining_s = torch.where(onset, torch.full_like(remaining_s, window_s),
+                              (remaining_s-dt).clamp(min=0.0))
+    armed = armed & (~onset)
+    # Persistent leaning after the finite correction interval cannot renew it.
+    exempt = (remaining_s > 0.0) & (rate > 0.25)
+    return exempt, onset, armed, stable_steps, remaining_s
+
+
+def load_preparation_score(load, closeness):
+    """Both received load and COM proximity must improve; bounded [0,1]."""
+    load_quality = ((load-0.12)/0.43).clamp(0.0, 1.0)
+    com_quality = ((closeness-0.28)/0.32).clamp(0.0, 1.0)
+    return torch.sqrt(load_quality * com_quality)
+
+
 def _evaluate_v111(
     env, command_name: str, sensor_cfg: SceneEntityCfg, asset_cfg: SceneEntityCfg,
     command_threshold: float = 0.08, clearance_full_m: float = 0.022,
@@ -36,6 +65,7 @@ def _evaluate_v111(
     repeat_floor: float = 0.20, recency_decay: float = 0.985,
     full_tilt_deg: float = 25.0, zero_tilt_deg: float = 55.0,
     full_height_m: float = 0.400, zero_height_m: float = 0.340,
+    recovery_window_s: float = 0.30, prep_window_s: float = 0.75,
 ) -> dict[str, torch.Tensor]:
     if not (0.0 < rearm_threshold < attempt_threshold < 1.0):
         raise ValueError('v11.1 invalid swing attempt hysteresis')
@@ -45,6 +75,8 @@ def _evaluate_v111(
         raise ValueError('v11.1 invalid recency and bootstrap')
     if min(clearance_full_m,rise_full_mps,forward_full_mps,max_stance_speed_mps) <= 0:
         raise ValueError('v11.1 invalid physical scales')
+    if not (0.10 <= recovery_window_s <= 0.50 and 0.20 <= prep_window_s <= 1.50):
+        raise ValueError('v11.1 R3 invalid reward windows')
 
     lengths = env.episode_length_buf
     previous = getattr(env, '_lgh111_cached_ep_len', None)
@@ -120,13 +152,20 @@ def _evaluate_v111(
     armed=torch.where(events,torch.zeros_like(armed),armed)
     cooldown=torch.where(events,torch.full_like(cooldown,attempt_cooldown_s),cooldown)
 
-    # Explicit exceptions: no repeated-side attenuation when responding to a
-    # nontrivial tilt/rate disturbance or a predominantly lateral command.
+    # R3: distinguish a short corrective disturbance from an enduring forward
+    # lean. Onset requires prior quiet re-arming and rising tilt/rate.
     gravity=k['asset'].data.projected_gravity_b
-    tilted=torch.linalg.vector_norm(gravity[:,:2],dim=1) > math.sin(math.radians(12))
+    tilt=torch.atan2(torch.linalg.vector_norm(gravity[:,:2],dim=1), -gravity[:,2])
     angular=k['asset'].data.root_ang_vel_b
-    recovery=(tilted & (torch.linalg.vector_norm(angular[:,:2],dim=1)>0.35)) | (
-        torch.linalg.vector_norm(gravity[:,:2],dim=1)> math.sin(math.radians(20)))
+    ang_rate=torch.linalg.vector_norm(angular[:,:2],dim=1)
+    prev_tilt=state('recovery_prev_tilt',tilt.clone())
+    prev_rate=state('recovery_prev_rate',ang_rate.clone())
+    recovery_armed=state('recovery_armed',torch.zeros(n,device=d,dtype=torch.bool))
+    recovery_stable_steps=state('recovery_stable_steps',torch.zeros(n,device=d,dtype=torch.long))
+    recovery_remaining=state('recovery_remaining',torch.zeros(n,device=d,dtype=dtype))
+    recovery,recovery_onset,recovery_armed,recovery_stable_steps,recovery_remaining=(
+        recovery_window_update(tilt,ang_rate,prev_tilt,prev_rate,recovery_armed,
+                               recovery_stable_steps,recovery_remaining,dt,recovery_window_s))
     strafe=(k['command'][:,1].abs()>=0.10)&(k['command'][:,1].abs()>=0.8*k['command'][:,0].abs())
     exempt=recovery|strafe
 
@@ -136,7 +175,9 @@ def _evaluate_v111(
     event_counts=state('event_counts',torch.zeros((n,2),device=d,dtype=torch.long))
     side_event=events.clone()
     for side in (0,1):
-        new=events[:,side] & (~exempt)
+        # All genuine swing bouts advance the side history. Recovery may
+        # temporarily waive attenuation, but must not erase those bouts.
+        new=events[:,side]
         same=last==side
         new_streak=torch.where(same,streak+1,torch.ones_like(streak))
         new_credit=repeat_multiplier(new_streak,repeat_decay,repeat_floor)
@@ -154,6 +195,41 @@ def _evaluate_v111(
     paired=torch.sqrt((recent[:,0]*recent[:,1]).clamp(min=0.0))
     swing_reward=(individual_bootstrap*0.5*current.sum(dim=1) +
                   (1.0-individual_bootstrap)*paired*current.max(dim=1).values).clamp(0,1.0)
+
+    # R3: early receiving-foot preparation is available following real whole-
+    # foot flight, including failed forward travel, BEFORE strict baton takeover.
+    # A single command epoch maintains a lifetime-high coupled load/COM score
+    # for each side. Repeated rocking to an earlier peak earns no new credit.
+    prep_seen_air=state('prep_seen_air',bools())
+    prep_air_age=state('prep_air_age',zeros())
+    prep_prev_plant=state('prep_prev_plant',k['full_plant'].clone())
+    prep_active=state('prep_active',bools())
+    prep_age=state('prep_age',zeros())
+    prep_high=state('prep_high',zeros())
+    prep_seen_air=prep_seen_air | (airborne & (k['whole_clear']>=0.006) &
+                                  (k['viability'][:,None]>=0.55) & moving[:,None])
+    prep_air_age=torch.where(airborne & (k['whole_clear']>=0.006),
+                             torch.zeros_like(prep_air_age),prep_air_age+dt)
+    prep_seen_air=prep_seen_air & (prep_air_age<=0.90)
+    # Stance-foot anchoring is required during receiving-foot preparation.
+    prep_anchor=(torch.linalg.vector_norm(k['center_vel'][:,other,:],dim=-1)<max_stance_speed_mps)
+    prep_fresh=(prep_seen_air & (~prep_prev_plant) & k['full_plant'] &
+                k['full_plant'][:,other] & (k['load_share'][:,other]>=0.30) &
+                prep_anchor & (k['viability'][:,None]>=0.55) & moving[:,None])
+    prep_active=prep_active|prep_fresh
+    prep_age=torch.where(prep_fresh,torch.zeros_like(prep_age),prep_age+dt*prep_active.float())
+    # Establish the touchdown baseline without paying a touchdown bonus.
+    prep_score=load_preparation_score(k['load_share'],k['closeness'])
+    prep_high=torch.where(prep_fresh,torch.maximum(prep_high,prep_score),prep_high)
+    prep_valid=(prep_active & k['full_plant'] & k['full_plant'][:,other] &
+                (k['load_share'][:,other]>=0.30) & prep_anchor &
+                (k['viability'][:,None]>=0.55) & moving[:,None])
+    prep_increment=(prep_score-prep_high).clamp(min=0.0)*prep_valid.float()
+    prep_high=torch.where(prep_valid,torch.maximum(prep_high,prep_score),prep_high)
+    prep_active=prep_active & (prep_age<=prep_window_s) & (k['load_share']<0.62)
+    prep_seen_air=prep_seen_air & (~prep_fresh)
+    prep_prev_plant=k['full_plant'].clone()
+    prep_reward=prep_increment.sum(dim=1).clamp(0.0,1.0)
 
     # Receiving-foot load progression is armed only by TRUE whole-foot airborne
     # forward directional passage. No plant/heel-only movement can arm it.
@@ -185,18 +261,29 @@ def _evaluate_v111(
         'recent':recent,'below':below,'armed':armed,'cooldown':cooldown,
         'last_side':last,'repeat_streak':streak,'side_credit':credit,
         'event_counts':event_counts,'pending':pending,'pending_age':pending_age,
+        'recovery_prev_tilt':tilt,'recovery_prev_rate':ang_rate,
+        'recovery_armed':recovery_armed,'recovery_stable_steps':recovery_stable_steps,
+        'recovery_remaining':recovery_remaining,
+        'prep_seen_air':prep_seen_air,'prep_air_age':prep_air_age,
+        'prep_prev_plant':prep_prev_plant,'prep_active':prep_active,
+        'prep_age':prep_age,'prep_high':prep_high,
         'load_peak':load_peak,'com_peak':com_peak,
     }.items():
         setattr(env,'_lgh111_'+name,value.detach().clone())
 
     output={
-        'swing':swing_reward,'receiver':receiver_reward,
+        'swing':swing_reward,'receiver':receiver_reward,'prep':prep_reward,
         'quality':quality,'ungated_quality':ungated_quality,
         'airborne':airborne,'partial_contact':partial_contact,
         'pivot_credit_blocked':partial_contact & (ungated_quality>0),
         'paired':paired,'events':side_event,
         'side_credit':effective_credit,'repeat_streak':streak,'recovery_exempt':recovery,
-        'strafe_exempt':strafe,'receiver_load_delta':load_delta,
+        'strafe_exempt':strafe,'recovery_onset':recovery_onset,
+        'recovery_window_s':recovery_remaining,'recovery_armed':recovery_armed,
+        'recovery_exempt_events':side_event & recovery[:,None],
+        'prep_fresh':prep_fresh,'prep_valid':prep_valid,'prep_progress':prep_increment,
+        'prep_score':prep_score,'prep_high':prep_high,
+        'receiver_load_delta':load_delta,
         'receiver_com_delta':com_delta,'receiver_progress':progress,'receiver_complete':completed,
         'receiver_pending':pending,
     }
@@ -229,6 +316,8 @@ def bilateral_swing_discovery_v111(
     zero_tilt_deg: float = 55.0,
     full_height_m: float = 0.400,
     zero_height_m: float = 0.340,
+    recovery_window_s: float = 0.30,
+    prep_window_s: float = 0.75,
 ) -> torch.Tensor:
     """Isaac Lab-compatible explicit parameters; no variadic kwargs.
 
@@ -258,6 +347,8 @@ def bilateral_swing_discovery_v111(
         zero_tilt_deg=zero_tilt_deg,
         full_height_m=full_height_m,
         zero_height_m=zero_height_m,
+        recovery_window_s=recovery_window_s,
+        prep_window_s=prep_window_s,
     )['swing']
 
 def receiving_foot_load_acceptance_v111(
@@ -283,6 +374,8 @@ def receiving_foot_load_acceptance_v111(
     zero_tilt_deg: float = 55.0,
     full_height_m: float = 0.400,
     zero_height_m: float = 0.340,
+    recovery_window_s: float = 0.30,
+    prep_window_s: float = 0.75,
 ) -> torch.Tensor:
     """Isaac Lab-compatible explicit parameters; no variadic kwargs.
 
@@ -312,4 +405,64 @@ def receiving_foot_load_acceptance_v111(
         zero_tilt_deg=zero_tilt_deg,
         full_height_m=full_height_m,
         zero_height_m=zero_height_m,
+        recovery_window_s=recovery_window_s,
+        prep_window_s=prep_window_s,
     )['receiver']
+
+def receiving_foot_preparation_v111(
+    env,
+    command_name: str,
+    sensor_cfg: SceneEntityCfg,
+    asset_cfg: SceneEntityCfg,
+    command_threshold: float = 0.08,
+    clearance_full_m: float = 0.022,
+    rise_full_mps: float = 0.100,
+    forward_full_mps: float = 0.22,
+    max_stance_speed_mps: float = 0.12,
+    attempt_threshold: float = 0.065,
+    rearm_threshold: float = 0.025,
+    rearm_steps: int = 4,
+    attempt_cooldown_s: float = 0.25,
+    individual_bootstrap: float = 0.55,
+    opposite_attempt_bonus: float = 0.45,
+    repeat_decay: float = 0.68,
+    repeat_floor: float = 0.20,
+    recency_decay: float = 0.985,
+    full_tilt_deg: float = 25.0,
+    zero_tilt_deg: float = 55.0,
+    full_height_m: float = 0.400,
+    zero_height_m: float = 0.340,
+    recovery_window_s: float = 0.30,
+    prep_window_s: float = 0.75,
+) -> torch.Tensor:
+    """Isaac Lab-compatible explicit parameters; no variadic kwargs.
+
+    ManagerBase validates all RewardTermCfg.params against this signature.
+    Both terms call one per-step cached implementation.
+    """
+    return _evaluate_v111(
+        env,
+        command_name=command_name,
+        sensor_cfg=sensor_cfg,
+        asset_cfg=asset_cfg,
+        command_threshold=command_threshold,
+        clearance_full_m=clearance_full_m,
+        rise_full_mps=rise_full_mps,
+        forward_full_mps=forward_full_mps,
+        max_stance_speed_mps=max_stance_speed_mps,
+        attempt_threshold=attempt_threshold,
+        rearm_threshold=rearm_threshold,
+        rearm_steps=rearm_steps,
+        attempt_cooldown_s=attempt_cooldown_s,
+        individual_bootstrap=individual_bootstrap,
+        opposite_attempt_bonus=opposite_attempt_bonus,
+        repeat_decay=repeat_decay,
+        repeat_floor=repeat_floor,
+        recency_decay=recency_decay,
+        full_tilt_deg=full_tilt_deg,
+        zero_tilt_deg=zero_tilt_deg,
+        full_height_m=full_height_m,
+        zero_height_m=zero_height_m,
+        recovery_window_s=recovery_window_s,
+        prep_window_s=prep_window_s,
+    )['prep']
